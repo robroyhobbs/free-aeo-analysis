@@ -1,19 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AnalysisResult, AnalysisStep } from "@/types";
-
-// Declare global window property for storing analysis results
-declare global {
-  interface Window {
-    __pendingAnalysisResults: AnalysisResult | null;
-  }
-}
-
-// Initialize the global property if it doesn't exist
-if (typeof window !== 'undefined' && window.__pendingAnalysisResults === undefined) {
-  window.__pendingAnalysisResults = null;
-}
 
 interface UseWebsiteAnalysisOptions {
   onError?: (error: Error) => void;
@@ -23,6 +11,9 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState<AnalysisStep>(AnalysisStep.Idle);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  
+  // We'll use a ref to store API response data while animation is still running
+  const pendingResultRef = useRef<AnalysisResult | null>(null);
   
   // Create a simulated progress timer with variable progression rates
   const simulateProgress = useCallback(() => {
@@ -93,19 +84,17 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
           setProgress(100);
           setCurrentStep(AnalysisStep.Complete);
           
-          // Get the stored analysis result and display it
-          // If we have api results already, they'll be in shared state within this component
-          const pendingResults = window.__pendingAnalysisResults;
-          if (pendingResults) {
-            setAnalysisResult(pendingResults);
-            window.__pendingAnalysisResults = null;
+          // Check if we have analysis data stored in our ref
+          if (pendingResultRef.current) {
+            setAnalysisResult(pendingResultRef.current);
+            pendingResultRef.current = null;
           }
         }, 1000); // Delay completion by 1 second for dramatic effect
       }
     }, updateInterval);
     
     return timer;
-  }, []);
+  }, [pendingResultRef]);
   
   const analysisMutation = useMutation({
     mutationFn: async (url: string) => {
@@ -113,18 +102,16 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
       return response.json();
     },
     onMutate: () => {
-      // Reset any existing stored analysis data
-      if (typeof window !== 'undefined') {
-        window.__pendingAnalysisResults = null;
-      }
+      // Reset any pending result data
+      pendingResultRef.current = null;
       
       const timer = simulateProgress();
       const startTime = Date.now();
       return { timer, startTime };
     },
     onSuccess: (data: AnalysisResult, _, context: any) => {
-      // Store the data globally so it can be accessed when animation completes
-      window.__pendingAnalysisResults = data;
+      // Store the data in our ref so it can be accessed when animation completes
+      pendingResultRef.current = data;
       
       // Calculate how much time has elapsed
       const elapsedTime = Date.now() - context.startTime;
@@ -138,7 +125,7 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
       
       // If we're already past the minimum time, show results immediately
       setAnalysisResult(data);
-      window.__pendingAnalysisResults = null; // Clear the global reference
+      pendingResultRef.current = null; // Clear the reference
     },
     onError: (error: Error, _, context: any) => {
       if (context?.timer) {
