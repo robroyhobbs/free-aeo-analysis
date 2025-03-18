@@ -10,9 +10,11 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1">
-        <HeroSection />
-        <div id="analysis-tool">
-          <AnalysisTool />
+        <div className="bg-gradient-to-b from-white to-slate-50">
+          <HeroSection />
+          <div id="analysis-tool" className="-mt-6">
+            <AnalysisTool />
+          </div>
         </div>
         <FeatureSection />
         <CallToAction />

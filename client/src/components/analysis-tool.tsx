@@ -68,27 +68,27 @@ export function AnalysisTool() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-      <Card className="overflow-hidden shadow-md">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+      <Card className="overflow-hidden shadow-xl border-t-4 border-primary">
         {/* Analysis Input Section */}
         {!isAnalyzing && !analysisResult && (
-          <CardContent className="px-6 py-8">
-            <div className="text-center mb-8">
+          <CardContent className="px-6 py-6">
+            <div className="text-center mb-4">
               <h2 className="text-2xl font-semibold mb-2">Analyze Your Website</h2>
               <p className="text-slate-600">
-                Enter your website URL below to see how well it's optimized for AI engines
+                Enter your website URL to get your free AEO score
               </p>
             </div>
             
             <div className="max-w-3xl mx-auto">
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-grow">
                   <Input
                     type="url"
                     placeholder="https://example.com"
                     value={url}
                     onChange={(e) => validateUrl(e.target.value)}
-                    className="w-full px-4 py-3"
+                    className="w-full px-4 py-3 border-primary/30 focus:border-primary"
                   />
                   {urlError && (
                     <div className="text-red-500 text-sm mt-1">{urlError}</div>
@@ -96,7 +96,7 @@ export function AnalysisTool() {
                 </div>
                 <Button 
                   onClick={handleAnalyze}
-                  className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90"
+                  className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90 text-base font-medium"
                 >
                   Analyze Now
                 </Button>
