@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans bg-slate-50 text-slate-800 min-h-screen;
+  }
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-500;
+}
+
+.gradient-bg {
+  @apply bg-gradient-to-r from-primary to-indigo-500;
+}
+
+.gradient-border {
+  @apply border border-transparent bg-gradient-to-r from-primary to-indigo-500;
+}
+
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-progress {
+  animation: progress 5s linear forwards;
+}
