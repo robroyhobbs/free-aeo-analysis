@@ -12,32 +12,68 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
   const [currentStep, setCurrentStep] = useState<AnalysisStep>(AnalysisStep.Idle);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   
-  // Create a simulated progress timer
+  // Create a simulated progress timer with variable progression rates
   const simulateProgress = useCallback(() => {
     setProgress(0);
     setCurrentStep(AnalysisStep.Crawling);
     
     const totalDuration = 5000; // 5 seconds
-    const stepDuration = totalDuration / 4; // 4 steps
     const updateInterval = 50; // Update every 50ms
-    const totalUpdates = totalDuration / updateInterval;
-    const progressIncrement = 100 / totalUpdates;
+    
+    // Step transition points (in percentage)
+    const stepTransitions = {
+      crawling: { start: 0, end: 25 },
+      analyzing: { start: 25, end: 55 }, // AI analysis takes longer
+      calculating: { start: 55, end: 75 },
+      generating: { start: 75, end: 100 }
+    };
+    
+    // Different progression rates for each step (to simulate realistic processing)
+    const getProgressionRate = (progress: number) => {
+      if (progress < stepTransitions.crawling.end) {
+        return 1.2; // Crawling starts fast
+      } else if (progress < stepTransitions.analyzing.end) {
+        return 0.7; // AI analysis is slower
+      } else if (progress < stepTransitions.calculating.end) {
+        return 0.9; // Calculation is medium speed
+      } else {
+        return 1.0; // Generation is normal speed
+      }
+    };
     
     let currentProgress = 0;
+    let lastUpdateTime = Date.now();
+    
     const timer = setInterval(() => {
-      currentProgress += progressIncrement;
-      setProgress(Math.min(Math.round(currentProgress), 100));
+      const now = Date.now();
+      const delta = now - lastUpdateTime;
+      lastUpdateTime = now;
       
-      // Update current step based on progress
-      if (currentProgress >= 25 && currentProgress < 50) {
+      // Calculate progress based on time delta and current progression rate
+      const progressionRate = getProgressionRate(currentProgress);
+      const increment = (delta / totalDuration) * 100 * progressionRate;
+      
+      // Add small random variation for natural effect
+      const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+      currentProgress += increment * randomFactor;
+      
+      // Ensure progress doesn't exceed 100%
+      const newProgress = Math.min(Math.round(currentProgress), 99); // Cap at 99 for API to complete
+      setProgress(newProgress);
+      
+      // Update current step based on progress thresholds
+      if (currentProgress >= stepTransitions.analyzing.start && 
+          currentProgress < stepTransitions.analyzing.end) {
         setCurrentStep(AnalysisStep.Analyzing);
-      } else if (currentProgress >= 50 && currentProgress < 75) {
+      } else if (currentProgress >= stepTransitions.calculating.start && 
+                 currentProgress < stepTransitions.calculating.end) {
         setCurrentStep(AnalysisStep.Calculating);
-      } else if (currentProgress >= 75) {
+      } else if (currentProgress >= stepTransitions.generating.start) {
         setCurrentStep(AnalysisStep.Generating);
       }
       
-      if (currentProgress >= 100) {
+      // Stop at 99% and let the actual API response complete the process
+      if (currentProgress >= 99) {
         clearInterval(timer);
       }
     }, updateInterval);

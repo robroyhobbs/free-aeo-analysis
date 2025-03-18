@@ -129,42 +129,61 @@ export function AnalysisTool() {
               </div>
               
               {/* Loading Animation */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-                <LoadingStep
-                  icon="search"
-                  title="Crawling Content"
-                  step={1}
-                  isActive={currentStep === AnalysisStep.Crawling}
-                  isCompleted={currentStep > AnalysisStep.Crawling}
-                />
-                
-                <LoadingStep
-                  icon="robot"
-                  title="AI Analysis"
-                  step={2}
-                  isActive={currentStep === AnalysisStep.Analyzing}
-                  isCompleted={currentStep > AnalysisStep.Analyzing}
-                />
-                
-                <LoadingStep
-                  icon="calculator"
-                  title="Calculating Score"
-                  step={3}
-                  isActive={currentStep === AnalysisStep.Calculating}
-                  isCompleted={currentStep > AnalysisStep.Calculating}
-                />
-                
-                <LoadingStep
-                  icon="clipboard-list"
-                  title="Generating Insights"
-                  step={4}
-                  isActive={currentStep === AnalysisStep.Generating}
-                  isCompleted={currentStep > AnalysisStep.Generating}
-                />
+              <div className="relative">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8 relative">
+                  {/* Connecting line container */}
+                  <div className="hidden sm:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10"></div>
+                  
+                  <LoadingStep
+                    icon="search"
+                    title="Crawling Content"
+                    step={1}
+                    isActive={currentStep === AnalysisStep.Crawling}
+                    isCompleted={currentStep > AnalysisStep.Crawling}
+                  />
+                  
+                  <LoadingStep
+                    icon="robot"
+                    title="AI Analysis"
+                    step={2}
+                    isActive={currentStep === AnalysisStep.Analyzing}
+                    isCompleted={currentStep > AnalysisStep.Analyzing}
+                  />
+                  
+                  <LoadingStep
+                    icon="calculator"
+                    title="Calculating Score"
+                    step={3}
+                    isActive={currentStep === AnalysisStep.Calculating}
+                    isCompleted={currentStep > AnalysisStep.Calculating}
+                  />
+                  
+                  <LoadingStep
+                    icon="clipboard-list"
+                    title="Generating Insights"
+                    step={4}
+                    isActive={currentStep === AnalysisStep.Generating}
+                    isCompleted={currentStep > AnalysisStep.Generating}
+                  />
+                </div>
               </div>
               
-              <div className="text-center">
-                <p className="text-slate-600 animate-pulse">Please wait while we analyze your website with Llama 3.3</p>
+              <div className="text-center bg-slate-50 p-4 rounded-lg border border-slate-200 mt-4">
+                <div className="text-lg font-medium mb-1">
+                  {currentStep === AnalysisStep.Crawling && "Crawling website content..."}
+                  {currentStep === AnalysisStep.Analyzing && "Analyzing content with Llama 3.3..."}
+                  {currentStep === AnalysisStep.Calculating && "Calculating AEO score..."}
+                  {currentStep === AnalysisStep.Generating && "Generating optimization insights..."}
+                </div>
+                <p className="text-slate-600">
+                  {currentStep === AnalysisStep.Crawling && "Extracting text, metadata, and structural elements..."}
+                  {currentStep === AnalysisStep.Analyzing && "AI is analyzing content relevance and structure..."}
+                  {currentStep === AnalysisStep.Calculating && "Determining question-based content score..."}
+                  {currentStep === AnalysisStep.Generating && "Creating actionable recommendations..."}
+                </p>
+                <div className="mt-2 text-primary text-sm animate-pulse">
+                  Expected completion in {5 - Math.floor(progress / 20)} seconds
+                </div>
               </div>
             </div>
           </CardContent>
