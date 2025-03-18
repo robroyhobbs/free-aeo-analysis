@@ -2,7 +2,7 @@ import { FEATURES } from "@/lib/constants";
 
 export function FeatureSection() {
   return (
-    <section className="bg-slate-100 py-16">
+    <section id="features" className="bg-slate-100 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Why AEO Matters for Your Business</h2>
@@ -38,7 +38,7 @@ export function FeatureSection() {
           ))}
         </div>
         
-        <div className="mt-16 bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+        <div id="impact" className="mt-16 bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
           <h3 className="text-2xl font-semibold mb-4 text-center">The Business Impact of AEO</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <div className="text-center">

@@ -8,22 +8,29 @@ export function Header() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <div className="gradient-bg text-white rounded-lg p-2 mr-3">
-                <i className="fas fa-bolt"></i>
+                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
               </div>
-              <span className="text-xl font-bold gradient-text">AEOScore</span>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold gradient-text">Free AEO Analysis</span>
+                <span className="text-xs text-slate-500">free-aeo-analysis.com</span>
+              </div>
             </div>
           </div>
-          <nav className="hidden md:flex space-x-8 items-center">
-            <a href="#" className="text-slate-800 hover:text-primary font-medium">Features</a>
-            <a href="#" className="text-slate-800 hover:text-primary font-medium">Pricing</a>
-            <a href="#" className="text-slate-800 hover:text-primary font-medium">Documentation</a>
+          <nav className="hidden md:flex space-x-6 items-center">
+            <a href="#features" className="text-slate-800 hover:text-primary font-medium">Features</a>
+            <a href="#analysis-tool" className="text-slate-800 hover:text-primary font-medium">Analyzer</a>
+            <a href="#impact" className="text-slate-800 hover:text-primary font-medium">Business Impact</a>
             <Button className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90">
               Get Started
             </Button>
           </nav>
           <div className="md:hidden">
             <Button variant="ghost" size="icon">
-              <i className="fas fa-bars"></i>
+              <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </Button>
           </div>
         </div>
