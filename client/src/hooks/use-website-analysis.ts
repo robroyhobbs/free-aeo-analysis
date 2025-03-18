@@ -3,6 +3,18 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AnalysisResult, AnalysisStep } from "@/types";
 
+// Declare global window property for storing analysis results
+declare global {
+  interface Window {
+    __pendingAnalysisResults: AnalysisResult | null;
+  }
+}
+
+// Initialize the global property if it doesn't exist
+if (typeof window !== 'undefined' && window.__pendingAnalysisResults === undefined) {
+  window.__pendingAnalysisResults = null;
+}
+
 interface UseWebsiteAnalysisOptions {
   onError?: (error: Error) => void;
 }
@@ -72,9 +84,23 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
         setCurrentStep(AnalysisStep.Generating);
       }
       
-      // Stop at 99% and let the actual API response complete the process
+      // Complete the process when progress reaches 99%
       if (currentProgress >= 99) {
         clearInterval(timer);
+        
+        // Force progress to complete at 100%
+        setTimeout(() => {
+          setProgress(100);
+          setCurrentStep(AnalysisStep.Complete);
+          
+          // Get the stored analysis result and display it
+          // If we have api results already, they'll be in shared state within this component
+          const pendingResults = window.__pendingAnalysisResults;
+          if (pendingResults) {
+            setAnalysisResult(pendingResults);
+            window.__pendingAnalysisResults = null;
+          }
+        }, 1000); // Delay completion by 1 second for dramatic effect
       }
     }, updateInterval);
     
@@ -87,11 +113,32 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
       return response.json();
     },
     onMutate: () => {
+      // Reset any existing stored analysis data
+      if (typeof window !== 'undefined') {
+        window.__pendingAnalysisResults = null;
+      }
+      
       const timer = simulateProgress();
-      return { timer };
+      const startTime = Date.now();
+      return { timer, startTime };
     },
-    onSuccess: (data: AnalysisResult) => {
+    onSuccess: (data: AnalysisResult, _, context: any) => {
+      // Store the data globally so it can be accessed when animation completes
+      window.__pendingAnalysisResults = data;
+      
+      // Calculate how much time has elapsed
+      const elapsedTime = Date.now() - context.startTime;
+      const minimumAnimationTime = 12000; // 12 seconds
+      
+      // If we've completed early, don't cut the animation short
+      if (elapsedTime < minimumAnimationTime) {
+        // Let the animation continue - we'll show results when it completes
+        return;
+      }
+      
+      // If we're already past the minimum time, show results immediately
       setAnalysisResult(data);
+      window.__pendingAnalysisResults = null; // Clear the global reference
     },
     onError: (error: Error, _, context: any) => {
       if (context?.timer) {
@@ -105,9 +152,8 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
       }
     },
     onSettled: (_, __, ___, context: any) => {
-      if (context?.timer) {
-        clearInterval(context.timer);
-      }
+      // Don't clear the interval here anymore, let it run its full course
+      // The animation itself will clear the interval when it reaches 99%
     },
   });
   
