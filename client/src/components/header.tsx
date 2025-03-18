@@ -17,7 +17,7 @@ export function Header() {
             <a href="#" className="text-slate-800 hover:text-primary font-medium">Features</a>
             <a href="#" className="text-slate-800 hover:text-primary font-medium">Pricing</a>
             <a href="#" className="text-slate-800 hover:text-primary font-medium">Documentation</a>
-            <Button className="gradient-bg hover:from-primary/90 hover:to-secondary-600/90">
+            <Button className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90">
               Get Started
             </Button>
           </nav>

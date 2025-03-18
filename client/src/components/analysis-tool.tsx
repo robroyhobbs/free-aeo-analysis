@@ -275,7 +275,7 @@ export function AnalysisTool() {
                     Analyze Another Website
                   </Button>
                   <Button
-                    className="ml-4 px-6 py-3 gradient-bg hover:from-primary/90 hover:to-secondary-600/90"
+                    className="ml-4 px-6 py-3 gradient-bg hover:from-primary/90 hover:to-indigo-500/90"
                   >
                     Get Detailed Report
                   </Button>
