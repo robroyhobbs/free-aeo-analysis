@@ -182,7 +182,7 @@ export function AnalysisTool() {
                   {currentStep === AnalysisStep.Generating && "Creating actionable recommendations..."}
                 </p>
                 <div className="mt-2 text-primary text-sm animate-pulse">
-                  Expected completion in {5 - Math.floor(progress / 20)} seconds
+                  Expected completion in {Math.max(12 - Math.floor(progress / 8.3), 1)} seconds
                 </div>
               </div>
             </div>

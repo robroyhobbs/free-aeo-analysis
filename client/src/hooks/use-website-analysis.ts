@@ -17,27 +17,27 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
     setProgress(0);
     setCurrentStep(AnalysisStep.Crawling);
     
-    const totalDuration = 5000; // 5 seconds
-    const updateInterval = 50; // Update every 50ms
+    const totalDuration = 12000; // 12 seconds (extended from 5s)
+    const updateInterval = 60; // Update every 60ms
     
     // Step transition points (in percentage)
     const stepTransitions = {
-      crawling: { start: 0, end: 25 },
-      analyzing: { start: 25, end: 55 }, // AI analysis takes longer
-      calculating: { start: 55, end: 75 },
+      crawling: { start: 0, end: 20 },
+      analyzing: { start: 20, end: 50 }, // AI analysis takes longer
+      calculating: { start: 50, end: 75 },
       generating: { start: 75, end: 100 }
     };
     
     // Different progression rates for each step (to simulate realistic processing)
     const getProgressionRate = (progress: number) => {
       if (progress < stepTransitions.crawling.end) {
-        return 1.2; // Crawling starts fast
+        return 0.9; // Crawling at moderate speed to be more visible
       } else if (progress < stepTransitions.analyzing.end) {
-        return 0.7; // AI analysis is slower
+        return 0.5; // AI analysis is much slower (most intensive task)
       } else if (progress < stepTransitions.calculating.end) {
-        return 0.9; // Calculation is medium speed
+        return 0.7; // Calculation is medium speed
       } else {
-        return 1.0; // Generation is normal speed
+        return 0.8; // Generation is slightly faster than calculation
       }
     };
     

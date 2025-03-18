@@ -14,15 +14,15 @@ export function LoadingStep({ icon, title, step, isActive, isCompleted }: Loadin
   const getIcon = () => {
     switch (icon) {
       case "search":
-        return <Search className="h-6 w-6" />;
+        return <Search className="h-7 w-7" />;
       case "robot":
-        return <Bot className="h-6 w-6" />;
+        return <Bot className="h-7 w-7" />;
       case "calculator":
-        return <Calculator className="h-6 w-6" />;
+        return <Calculator className="h-7 w-7" />;
       case "clipboard-list":
-        return <ClipboardList className="h-6 w-6" />;
+        return <ClipboardList className="h-7 w-7" />;
       default:
-        return <Search className="h-6 w-6" />;
+        return <Search className="h-7 w-7" />;
     }
   };
   
@@ -44,18 +44,18 @@ export function LoadingStep({ icon, title, step, isActive, isCompleted }: Loadin
       
       {/* Icon Circle */}
       <div 
-        className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 transition-all duration-500 ${
+        className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 transition-all duration-500 ${
           isCompleted 
-            ? "bg-green-100 text-green-600 transform rotate-0" 
+            ? "bg-green-100 text-green-600 transform scale-110" 
             : isActive 
-              ? "bg-primary/10 text-primary shadow-lg animate-pulse" 
+              ? "bg-primary/10 text-primary shadow-xl animate-pulse scale-125" 
               : "bg-slate-100 text-slate-400"
         }`}
       >
         {isCompleted ? (
-          <CheckCircle2 className="h-7 w-7 text-green-600 animate-bounce" />
+          <CheckCircle2 className="h-8 w-8 text-green-600 animate-bounce" />
         ) : (
-          <div className={isActive ? "animate-spin-slow" : ""}>
+          <div className={`transition-all duration-500 ${isActive ? "animate-spin-slow scale-110 text-primary" : "text-slate-400"}`}>
             {getIcon()}
           </div>
         )}
