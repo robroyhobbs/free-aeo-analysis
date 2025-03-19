@@ -22,9 +22,11 @@ export default function NotFound() {
             </p>
             
             <div className="flex justify-center">
-              <Button>
-                <Link href="/">Go back home</Link>
-              </Button>
+              <Link href="/">
+                <Button className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90">
+                  Go back home
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
