@@ -166,68 +166,168 @@ function analyzeContent(content: WebsiteContent): ScoreBreakdown[] {
   return AEO_CRITERIA.map((criterion) => {
     let score = 0;
     let details = "";
+    let example = "";
     
     switch (criterion.factor) {
-      case "Question-Based Content":
-        score = analyzeQuestionBasedContent(content);
+      case "Question-Based Content": {
+        const result = analyzeQuestionBasedContent(content);
+        score = result.score;
+        example = result.example;
         details = score >= 80 
           ? "Strong FAQ sections with direct answers to common queries" 
           : score >= 60 
             ? "Some question-based content but could be improved"
             : "Limited question-based content";
         break;
+      }
       
-      case "Structured Data":
-        score = analyzeStructuredData(content);
+      case "Structured Data": {
+        const result = analyzeStructuredData(content);
+        score = result.score;
+        example = result.example;
         details = score >= 80 
           ? "Comprehensive schema markup implementation" 
           : score >= 60 
             ? "Basic schema markup present"
             : "Limited implementation of schema markup";
         break;
+      }
       
-      case "Content Clarity":
-        score = analyzeContentClarity(content);
+      case "Content Clarity": {
+        // We'll update this function later but handle it safely for now
+        if (typeof analyzeContentClarity(content) === 'object') {
+          const result = analyzeContentClarity(content) as any;
+          score = result.score;
+          example = result.example || "";
+        } else {
+          score = analyzeContentClarity(content) as number;
+          
+          // Extract a basic example since the function hasn't been updated yet
+          const paragraphs = content.text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+          if (paragraphs.length > 0) {
+            const sampleParagraph = paragraphs[0].substring(0, 100);
+            example = `Sample text: "${sampleParagraph}${sampleParagraph.length >= 100 ? '...' : ''}"`;
+          } else {
+            example = "No clear paragraph structure found";
+          }
+        }
+        
         details = score >= 80 
           ? "Clear writing with good formatting and concise points" 
           : score >= 60 
             ? "Reasonably clear content but some improvements needed"
             : "Content lacks clarity and structure";
         break;
+      }
       
-      case "Semantic Keywords":
-        score = analyzeSemanticKeywords(content);
+      case "Semantic Keywords": {
+        // We'll update this function later but handle it safely for now
+        if (typeof analyzeSemanticKeywords(content) === 'object') {
+          const result = analyzeSemanticKeywords(content) as any;
+          score = result.score;
+          example = result.example || "";
+        } else {
+          score = analyzeSemanticKeywords(content) as number;
+          
+          // Extract meta keywords as a basic example
+          if (content.meta && content.meta.keywords) {
+            example = `Meta keywords: "${content.meta.keywords.substring(0, 100)}${content.meta.keywords.length >= 100 ? '...' : ''}"`;
+          } else {
+            example = "No meta keywords found";
+          }
+        }
+        
         details = score >= 80 
           ? "Excellent use of related terms and semantic context" 
           : score >= 60 
             ? "Good use of related terms but could expand topical coverage"
             : "Limited use of related terms and semantic context";
         break;
+      }
       
-      case "Content Freshness":
-        score = analyzeContentFreshness(content);
+      case "Content Freshness": {
+        // We'll update this function later but handle it safely for now
+        if (typeof analyzeContentFreshness(content) === 'object') {
+          const result = analyzeContentFreshness(content) as any;
+          score = result.score;
+          example = result.example || "";
+        } else {
+          score = analyzeContentFreshness(content) as number;
+          
+          // Use last modified date as an example if available
+          if (content.lastModified) {
+            example = `Last modified: ${content.lastModified}`;
+          } else {
+            // Try to find a date in the content
+            const dateRegex = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2},? \d{4}\b/gi;
+            const dateMatches = content.text.match(dateRegex) || [];
+            
+            if (dateMatches.length > 0) {
+              example = `Date found in content: ${dateMatches[0]}`;
+            } else {
+              example = "No date information found";
+            }
+          }
+        }
+        
         details = score >= 80 
           ? "Content is recent and regularly updated" 
           : score >= 60 
             ? "Some content is recent but updates are inconsistent"
             : "Several pages with outdated content";
         break;
+      }
       
-      case "Authority Signals":
-        score = analyzeAuthoritySignals(content);
+      case "Authority Signals": {
+        // We'll update this function later but handle it safely for now
+        if (typeof analyzeAuthoritySignals(content) === 'object') {
+          const result = analyzeAuthoritySignals(content) as any;
+          score = result.score;
+          example = result.example || "";
+        } else {
+          score = analyzeAuthoritySignals(content) as number;
+          
+          // Extract an authority link as an example if available
+          const links = content.links;
+          const authorityDomains = [
+            "wikipedia.org", "gov", "edu", "harvard", "stanford", "mit",
+            "bbc", "nytimes", "reuters", "bloomberg", "wsj", "economist"
+          ];
+          
+          let authorityLink = "";
+          
+          for (const link of links) {
+            for (const domain of authorityDomains) {
+              if (link.includes(domain)) {
+                authorityLink = link;
+                break;
+              }
+            }
+            if (authorityLink) break;
+          }
+          
+          if (authorityLink) {
+            example = `Authority link: ${authorityLink}`;
+          } else {
+            example = "No authority links found";
+          }
+        }
+        
         details = score >= 80 
           ? "Strong authority signals with citations and expert sources" 
           : score >= 60 
             ? "Good citation of sources and expert opinions"
             : "Limited authority signals";
         break;
+      }
     }
     
     return {
       factor: criterion.factor,
       score,
       weight: criterion.weight,
-      details
+      details,
+      example
     };
   });
 }
@@ -300,23 +400,62 @@ function analyzeQuestionBasedContent(content: WebsiteContent): { score: number; 
   };
 }
 
-function analyzeStructuredData(content: WebsiteContent): number {
+function analyzeStructuredData(content: WebsiteContent): { score: number; example: string } {
   if (!content.schema || content.schema.length === 0) {
-    return 30; // Basic score for no schema
+    return { 
+      score: 30, // Basic score for no schema
+      example: "No schema markup found on page" 
+    };
   }
   
   const schemaTypes = new Set<string>();
+  let schemaExample = "";
   
   // Flatten schema and collect all types
   content.schema.forEach(schema => {
     if (schema["@type"]) {
       schemaTypes.add(schema["@type"]);
+      
+      // Get a sample of the first schema that has a meaningful type
+      if (!schemaExample && schema["@type"]) {
+        // Create a simplified example
+        const type = schema["@type"];
+        if (typeof type === 'string') {
+          schemaExample = `Type: ${type}`;
+          
+          // Add a name property if available
+          if (schema.name) {
+            schemaExample += `, Name: "${schema.name}"`;
+          }
+          
+          // For FAQ, include a sample question if available
+          if (type === "FAQPage" && schema.mainEntity && Array.isArray(schema.mainEntity)) {
+            const question = schema.mainEntity[0]?.name;
+            if (question) {
+              schemaExample += `, Sample question: "${question}"`;
+            }
+          }
+        }
+      }
     }
     
     if (schema["@graph"] && Array.isArray(schema["@graph"])) {
       schema["@graph"].forEach((item: any) => {
         if (item["@type"]) {
           schemaTypes.add(item["@type"]);
+          
+          // If we haven't found an example yet, use this one
+          if (!schemaExample) {
+            const type = item["@type"];
+            if (typeof type === 'string') {
+              schemaExample = `Type: ${type}`;
+              
+              // Add name if available
+              if (item.name) {
+                schemaExample += `, Name: "${item.name}"`;
+              }
+            }
+          }
         }
       });
     }
@@ -349,7 +488,15 @@ function analyzeStructuredData(content: WebsiteContent): number {
   if (schemaTypes.has("FAQPage")) score += 10;
   if (schemaTypes.has("HowTo")) score += 10;
   
-  return Math.min(Math.max(score, 0), 100);
+  // If we couldn't extract a specific example, list the schema types
+  if (!schemaExample && schemaTypes.size > 0) {
+    schemaExample = `Found ${schemaTypes.size} schema types: ${Array.from(schemaTypes).join(", ")}`;
+  }
+  
+  return { 
+    score: Math.min(Math.max(score, 0), 100),
+    example: schemaExample || "Schema markup present but couldn't extract details" 
+  };
 }
 
 function analyzeContentClarity(content: WebsiteContent): number {
