@@ -161,22 +161,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = dirname(__filename);
       
-      // Path to the static blog post script
-      const staticBlogPath = join(__dirname, '../scripts/add-static-blog-post.js');
+      // Path to the blog fix script
+      const fixScriptPath = join(__dirname, '../scripts/fix-blog-with-new-post.js');
       
-      console.log(`[Admin] Using static blog post script: ${staticBlogPath}`);
+      console.log(`[Admin] Using blog fix script: ${fixScriptPath}`);
       
       // Make sure the script exists before trying to execute it
-      if (!existsSync(staticBlogPath)) {
-        throw new Error(`Static blog post script not found at path: ${staticBlogPath}`);
+      if (!existsSync(fixScriptPath)) {
+        throw new Error(`Blog fix script not found at path: ${fixScriptPath}`);
       }
       
-      // Import and execute the static blog post function
+      // Import and execute the blog fix function
       try {
-        const { addStaticBlogPost } = await import(staticBlogPath);
-        const result = await addStaticBlogPost();
+        const { fixBlogWithNewPost } = await import(fixScriptPath);
+        const result = await fixBlogWithNewPost();
         
-        console.log('[Admin] Static blog post result:', result);
+        console.log('[Admin] Blog fix and post result:', result);
         
         if (result.success) {
           return res.json({
@@ -195,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('[Admin] Error importing or executing static blog post script:', importError);
         
         // Fallback to executing as a process if import fails
-        const process = spawn('node', [staticBlogPath], {
+        const process = spawn('node', [fixScriptPath], {
           stdio: ['ignore', 'pipe', 'pipe']
         });
         
