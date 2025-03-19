@@ -3,6 +3,13 @@ import { analyses, type Analysis, type InsertAnalysis } from "@shared/schema";
 // modify the interface with any CRUD methods
 // you might need
 
+export interface UsageMetrics {
+  totalAnalyses: number;
+  recentAnalyses: number; // Last 24 hours
+  averageScore: number;
+  topDomains: Array<{ domain: string; count: number }>;
+}
+
 export interface IStorage {
   getUser(id: number): Promise<any | undefined>;
   getUserByUsername(username: string): Promise<any | undefined>;
@@ -13,6 +20,9 @@ export interface IStorage {
   getAnalysisByUrl(url: string): Promise<Analysis | undefined>;
   getRecentAnalysisByUrl(url: string): Promise<Analysis | undefined>;
   getRecentAnalyses(limit?: number): Promise<Analysis[]>;
+  
+  // Admin metrics methods
+  getUsageMetrics(): Promise<UsageMetrics>;
 }
 
 export class MemStorage implements IStorage {
@@ -90,6 +100,51 @@ export class MemStorage implements IStorage {
     return Array.from(this.analysisStore.values())
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, limit);
+  }
+  
+  async getUsageMetrics(): Promise<UsageMetrics> {
+    // Get all analyses
+    const allAnalyses = Array.from(this.analysisStore.values());
+    
+    // Calculate total analyses
+    const totalAnalyses = allAnalyses.length;
+    
+    // Calculate recent analyses (last 24 hours)
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const recentAnalyses = allAnalyses.filter(
+      analysis => new Date(analysis.timestamp) >= oneDayAgo
+    ).length;
+    
+    // Calculate average score
+    const averageScore = totalAnalyses > 0 
+      ? allAnalyses.reduce((sum, analysis) => sum + analysis.overallScore, 0) / totalAnalyses 
+      : 0;
+    
+    // Calculate top domains
+    const domainCounts = new Map<string, number>();
+    allAnalyses.forEach(analysis => {
+      try {
+        const url = new URL(analysis.url);
+        const domain = url.hostname;
+        domainCounts.set(domain, (domainCounts.get(domain) || 0) + 1);
+      } catch (e) {
+        // Skip invalid URLs
+      }
+    });
+    
+    // Convert map to array and sort by count descending
+    const topDomains = Array.from(domainCounts.entries())
+      .map(([domain, count]) => ({ domain, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5); // Return top 5 domains
+    
+    return {
+      totalAnalyses,
+      recentAnalyses,
+      averageScore,
+      topDomains
+    };
   }
 }
 

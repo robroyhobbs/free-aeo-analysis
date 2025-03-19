@@ -185,6 +185,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Get usage metrics for admin dashboard - protected by auth
+  app.get("/api/admin/metrics", isAuthenticated, async (_req: Request, res: Response) => {
+    try {
+      const metrics = await storage.getUsageMetrics();
+      return res.json(metrics);
+    } catch (error: any) {
+      const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
+      console.error("Error retrieving usage metrics:", errorMessage);
+      return res.status(500).json({ 
+        success: false,
+        message: "Failed to retrieve usage metrics",
+        error: errorMessage
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

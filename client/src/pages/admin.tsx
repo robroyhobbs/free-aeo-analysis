@@ -2,9 +2,11 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { BlogAdminPanel } from '@/components/blog-admin-panel';
 import { LoginForm } from '@/components/login-form';
+import { AdminMetricsDashboard } from '@/components/admin-metrics-dashboard';
 import { SEO } from '@/components/seo';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { LogOutIcon, LockIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
