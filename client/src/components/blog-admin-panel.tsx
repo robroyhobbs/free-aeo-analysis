@@ -1,16 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
-
-interface BlogGenerationResponse {
-  success: boolean;
-  message: string;
-  output?: string;
-  error?: string;
-}
+import { generateBlogPost as generateBlogPostService } from '@/lib/authService';
 
 export function BlogAdminPanel() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -23,17 +16,7 @@ export function BlogAdminPanel() {
       setIsGenerating(true);
       setResult(null);
       
-      const response = await fetch('/api/admin/generate-blog', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json() as BlogGenerationResponse;
+      const data = await generateBlogPostService();
       
       setResult({
         success: data.success,
