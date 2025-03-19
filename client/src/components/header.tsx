@@ -21,7 +21,7 @@ export function Header() {
           <nav className="hidden md:flex space-x-6 items-center">
             <a href="#features" className="text-slate-800 hover:text-primary font-medium">Features</a>
             <a href="#analysis-tool" className="text-slate-800 hover:text-primary font-medium">Analyzer</a>
-            <a href="#impact" className="text-slate-800 hover:text-primary font-medium">Business Impact</a>
+            <a href="/blog" className="text-slate-800 hover:text-primary font-medium">Blog</a>
             <Button className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90">
               Get Started
             </Button>

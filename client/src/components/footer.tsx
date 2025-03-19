@@ -37,7 +37,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li><a href="#analysis-tool" className="text-slate-400 hover:text-white">Website Analyzer</a></li>
               <li><a href="#features" className="text-slate-400 hover:text-white">Feature Overview</a></li>
-              <li><a href="#impact" className="text-slate-400 hover:text-white">Business Impact</a></li>
+              <li><a href="/blog" className="text-slate-400 hover:text-white">Blog</a></li>
               <li><a href="#" className="text-slate-400 hover:text-white">API Access</a></li>
             </ul>
           </div>
@@ -46,7 +46,7 @@ export function Footer() {
             <h3 className="text-lg font-medium text-white mb-4">AEO Resources</h3>
             <ul className="space-y-2">
               <li><a href="#" className="text-slate-400 hover:text-white">AEO Guide</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-white">Blog</a></li>
+              <li><a href="/blog" className="text-slate-400 hover:text-white">Blog</a></li>
               <li><a href="#" className="text-slate-400 hover:text-white">Case Studies</a></li>
               <li><a href="#" className="text-slate-400 hover:text-white">FAQ</a></li>
             </ul>
