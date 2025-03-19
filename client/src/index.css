@@ -62,3 +62,95 @@
     opacity: 0.6;
   }
 }
+
+/* AI-themed data flow animation */
+@keyframes data-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-data-flow {
+  background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.3) 50%, rgba(var(--primary-rgb), 0.1) 100%);
+  background-size: 200% 100%;
+  animation: data-flow 3s linear infinite;
+}
+
+/* Neural network pulse animation */
+@keyframes neural-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+  }
+}
+
+.animate-neural-pulse {
+  animation: neural-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* AI processing ripple animation */
+@keyframes processing-ripple {
+  0% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1.02);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
+}
+
+.animate-processing {
+  animation: processing-ripple 2s ease-in-out infinite;
+}
+
+/* Brain thinking animation */
+@keyframes brain-thinking {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+.animate-thinking {
+  animation: brain-thinking 2.5s ease-in-out infinite;
+}
+
+/* Path tracing for neural connections */
+@keyframes path-trace {
+  0% {
+    stroke-dashoffset: 200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-path-trace {
+  stroke-dasharray: 200;
+  animation: path-trace 3s linear infinite;
+}
+
+/* Set primary color RGB variables for animations */
+:root {
+  --primary-rgb: 79, 70, 229; /* Indigo-600 RGB values */
+}
