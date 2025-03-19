@@ -24,29 +24,39 @@ export function useAuth() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Function to fetch auth status (made reusable for other methods)
+  const fetchAuthStatus = useCallback(async () => {
+    try {
+      const response = await checkAuthStatus();
+      
+      setAuthState({
+        isAuthenticated: response.authenticated,
+        user: response.user || null,
+        isLoading: false
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Failed to check authentication status:', error);
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        isLoading: false
+      });
+      return { authenticated: false };
+    }
+  }, []);
+
   // Check auth status on initial load
   useEffect(() => {
-    const fetchAuthStatus = async () => {
-      try {
-        const response = await checkAuthStatus();
-        
-        setAuthState({
-          isAuthenticated: response.authenticated,
-          user: response.user || null,
-          isLoading: false
-        });
-      } catch (error) {
-        console.error('Failed to check authentication status:', error);
-        setAuthState({
-          isAuthenticated: false,
-          user: null,
-          isLoading: false
-        });
-      }
-    };
-
     fetchAuthStatus();
-  }, []);
+  }, [fetchAuthStatus]);
+
+  // Refresh auth status - can be called explicitly
+  const refreshAuthStatus = useCallback(async () => {
+    setAuthState(prev => ({ ...prev, isLoading: true }));
+    return fetchAuthStatus();
+  }, [fetchAuthStatus]);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
     try {
@@ -55,11 +65,8 @@ export function useAuth() {
       const response = await loginService(credentials.username, credentials.password);
       
       if (response.success) {
-        setAuthState({
-          isAuthenticated: true,
-          user: response.user,
-          isLoading: false
-        });
+        // Instead of directly setting auth state, fetch fresh auth status
+        await fetchAuthStatus();
         
         // Invalidate any admin-related queries
         queryClient.invalidateQueries({ queryKey: ['/api/admin'] });
@@ -85,7 +92,7 @@ export function useAuth() {
       
       return false;
     }
-  }, [toast, queryClient]);
+  }, [toast, queryClient, fetchAuthStatus]);
 
   const logout = useCallback(async () => {
     try {
@@ -99,6 +106,9 @@ export function useAuth() {
           user: null,
           isLoading: false
         });
+        
+        // Also invalidate admin queries on logout
+        queryClient.invalidateQueries({ queryKey: ['/api/admin'] });
         
         toast({
           title: 'Logged out',
@@ -117,13 +127,14 @@ export function useAuth() {
         variant: 'destructive'
       });
     }
-  }, [toast]);
+  }, [toast, queryClient]);
 
   return {
     isAuthenticated: authState.isAuthenticated,
     user: authState.user,
     isLoading: authState.isLoading,
     login,
-    logout
+    logout,
+    refreshAuthStatus
   };
 }

@@ -1,19 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { LockIcon, UserIcon } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading } = useAuth();
+  const [loginStatus, setLoginStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
+  const { login, isLoading, refreshAuthStatus } = useAuth();
+  const { toast } = useToast();
+
+  // Refresh auth status when form mounts
+  useEffect(() => {
+    refreshAuthStatus();
+  }, [refreshAuthStatus]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login({ username, password });
+    setLoginStatus('pending');
+    
+    try {
+      const success = await login({ username, password });
+      
+      if (success) {
+        setLoginStatus('success');
+        // Double-check auth status after a short delay to ensure the session is established
+        setTimeout(() => {
+          refreshAuthStatus();
+        }, 500);
+      } else {
+        setLoginStatus('error');
+      }
+    } catch (error) {
+      setLoginStatus('error');
+      toast({
+        title: 'Login error',
+        description: 'There was a problem logging in. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -39,6 +68,7 @@ export function LoginForm() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                disabled={isLoading || loginStatus === 'pending'}
               />
             </div>
           </div>
@@ -56,13 +86,14 @@ export function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading || loginStatus === 'pending'}
               />
             </div>
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Logging in...' : 'Log in'}
+          <Button type="submit" className="w-full" disabled={isLoading || loginStatus === 'pending'}>
+            {isLoading || loginStatus === 'pending' ? 'Logging in...' : 'Log in'}
           </Button>
         </CardFooter>
       </form>
