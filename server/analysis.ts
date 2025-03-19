@@ -4,6 +4,12 @@ import { WebsiteContent, AnalysisResult, Recommendation, RecommendationType, Sco
 import { AEO_CRITERIA } from "@/lib/constants";
 import { calculateWeightedScore } from "@/lib/utils";
 
+// Helper type for analysis function results
+interface AnalysisFunctionResult {
+  score: number;
+  example: string;
+}
+
 // Function to fetch and parse website content
 export async function getContent(url: string): Promise<WebsiteContent> {
   try {
@@ -257,7 +263,7 @@ function analyzeContent(content: WebsiteContent): ScoreBreakdown[] {
 }
 
 // Analysis functions for each criterion
-function analyzeQuestionBasedContent(content: WebsiteContent): { score: number; example: string } {
+function analyzeQuestionBasedContent(content: WebsiteContent): AnalysisFunctionResult {
   // Count question marks in headers
   const headerQuestions = [
     ...content.headers.h1, 
@@ -324,7 +330,7 @@ function analyzeQuestionBasedContent(content: WebsiteContent): { score: number; 
   };
 }
 
-function analyzeStructuredData(content: WebsiteContent): { score: number; example: string } {
+function analyzeStructuredData(content: WebsiteContent): AnalysisFunctionResult {
   if (!content.schema || content.schema.length === 0) {
     return { 
       score: 30, // Basic score for no schema
@@ -423,7 +429,7 @@ function analyzeStructuredData(content: WebsiteContent): { score: number; exampl
   };
 }
 
-function analyzeContentClarity(content: WebsiteContent): { score: number; example: string } {
+function analyzeContentClarity(content: WebsiteContent): AnalysisFunctionResult {
   // Check for short paragraphs (clarity indicator)
   const paragraphs = content.text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
   const avgParagraphLength = paragraphs.reduce((sum, p) => sum + p.length, 0) / (paragraphs.length || 1);
@@ -519,7 +525,7 @@ function analyzeContentClarity(content: WebsiteContent): { score: number; exampl
   };
 }
 
-function analyzeSemanticKeywords(content: WebsiteContent): { score: number; example: string } {
+function analyzeSemanticKeywords(content: WebsiteContent): AnalysisFunctionResult {
   // For a proper implementation, this would analyze content for semantic keywords
   // using NLP techniques. For this demo, we'll use a simpler approach.
   
@@ -633,7 +639,7 @@ function analyzeSemanticKeywords(content: WebsiteContent): { score: number; exam
   };
 }
 
-function analyzeContentFreshness(content: WebsiteContent): { score: number; example: string } {
+function analyzeContentFreshness(content: WebsiteContent): AnalysisFunctionResult {
   // Check for last modified header
   let lastModifiedDate: Date | null = null;
   
