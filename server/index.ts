@@ -4,10 +4,62 @@ import { setupVite, serveStatic, log } from "./vite";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { spawn } from 'child_process';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import session from 'express-session';
+import MemoryStore from 'memorystore';
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Configure session
+const SessionStore = MemoryStore(session);
+app.use(session({
+  cookie: { maxAge: 86400000 }, // 24 hours
+  store: new SessionStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  }),
+  resave: false,
+  saveUninitialized: false,
+  secret: 'aeo-analysis-secret-key'
+}));
+
+// Configure passport
+passport.use(new LocalStrategy(
+  async function(username, password, done) {
+    try {
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
+      }
+      if (user.password !== password) { // In a real app, use bcrypt to compare passwords
+        return done(null, false, { message: 'Incorrect password.' });
+      }
+      return done(null, user);
+    } catch(err) {
+      return done(err);
+    }
+  }
+));
+
+passport.serializeUser((user: any, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id: number, done) => {
+  try {
+    const user = await storage.getUser(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
+});
+
+// Initialize passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use((req, res, next) => {
   const start = Date.now();

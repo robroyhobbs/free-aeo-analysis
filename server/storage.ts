@@ -26,6 +26,12 @@ export class MemStorage implements IStorage {
     this.analysisStore = new Map();
     this.currentUserId = 1;
     this.currentAnalysisId = 1;
+    
+    // Create a default admin user
+    this.createUser({
+      username: "admin",
+      password: "admin123" // In a real app, this would be hashed
+    });
   }
 
   async getUser(id: number): Promise<any | undefined> {

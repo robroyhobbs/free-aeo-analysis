@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analyzeWebsite, getContent } from "./analysis";
@@ -7,8 +7,48 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { spawn } from 'child_process';
 import { ZodError } from "zod";
+import passport from "passport";
+
+// Auth middleware
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ success: false, message: 'Please login to access this resource' });
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication routes
+  app.post('/api/auth/login', 
+    passport.authenticate('local'),
+    (req: Request, res: Response) => {
+      res.json({ 
+        success: true, 
+        message: 'Login successful', 
+        user: { id: (req.user as any).id, username: (req.user as any).username } 
+      });
+    }
+  );
+  
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ success: false, message: 'Logout failed' });
+      }
+      res.json({ success: true, message: 'Logout successful' });
+    });
+  });
+  
+  app.get('/api/auth/status', (req: Request, res: Response) => {
+    if (req.isAuthenticated()) {
+      res.json({ 
+        authenticated: true, 
+        user: { id: (req.user as any).id, username: (req.user as any).username }
+      });
+    } else {
+      res.json({ authenticated: false });
+    }
+  });
   // Analyze website route
   app.post("/api/analyze", async (req: Request, res: Response) => {
     try {
@@ -93,8 +133,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Admin endpoint to manually generate a blog post
-  app.post("/api/admin/generate-blog", async (_req: Request, res: Response) => {
+  // Admin endpoint to manually generate a blog post - protected by auth
+  app.post("/api/admin/generate-blog", isAuthenticated, async (_req: Request, res: Response) => {
     try {
       // Get the current file's directory
       const __filename = fileURLToPath(import.meta.url);
