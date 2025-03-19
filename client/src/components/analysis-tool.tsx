@@ -225,12 +225,14 @@ export function AnalysisTool() {
       clearInterval(animationTimerRef.current);
     }
     
-    // Track animation start time
+    // Track animation start time - this is critical for maintaining the full 8-second duration
     const startTime = Date.now();
+    const mustRunUntil = startTime + ANIMATION_DURATION; // Animation must run at least until this timestamp
     
     // Create animation timer
     animationTimerRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
+      const now = Date.now();
+      const elapsed = now - startTime;
       const newProgress = Math.min(100, Math.floor((elapsed / ANIMATION_DURATION) * 100));
       
       // Update progress
@@ -255,17 +257,20 @@ export function AnalysisTool() {
         }
       }
       
-      // Check if animation is complete
-      if (newProgress >= 100) {
-        // Clear timer
-        clearInterval(animationTimerRef.current!);
-        animationTimerRef.current = null;
-        
-        // Check if we have a pending result
-        if (pendingResultRef.current) {
-          setAnalysisResult(pendingResultRef.current);
-          setViewState("results");
-          pendingResultRef.current = null;
+      // Check if animation has run for the full 8 seconds
+      if (now >= mustRunUntil) {
+        // Animation has run for at least 8 seconds, we can now complete it
+        if (newProgress >= 100) {
+          // Clear timer
+          clearInterval(animationTimerRef.current!);
+          animationTimerRef.current = null;
+          
+          // Check if we have a pending result
+          if (pendingResultRef.current) {
+            setAnalysisResult(pendingResultRef.current);
+            setViewState("results");
+            pendingResultRef.current = null;
+          }
         }
       }
     }, 80); // Update roughly every 80ms (12.5 fps)
@@ -277,12 +282,13 @@ export function AnalysisTool() {
       // Store the result
       pendingResultRef.current = analysisMutation.data;
       
-      // If animation is already complete, show results immediately
+      // If animation is already complete (full 8 seconds), show results immediately
       if (progress >= 100) {
         setAnalysisResult(analysisMutation.data);
         setViewState("results");
         pendingResultRef.current = null;
       }
+      // Otherwise, let the animation continue to complete
     }
   }, [analysisMutation.data, progress, viewState]);
   

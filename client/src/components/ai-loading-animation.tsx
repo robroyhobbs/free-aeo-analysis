@@ -12,14 +12,19 @@ export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimati
 
   // Timer to ensure animation runs for at least 8 seconds
   useEffect(() => {
+    const startTime = Date.now();
+    const animationDuration = 8000; // 8 seconds
+    
     const timer = setInterval(() => {
-      setTimeElapsed((prev) => {
-        if (prev < 100) {
-          return prev + 0.5;
-        }
-        return prev;
-      });
-    }, 40); // 40ms * 200 iterations = 8 seconds total
+      const elapsed = Date.now() - startTime;
+      const percentComplete = Math.min(100, (elapsed / animationDuration) * 100);
+      setTimeElapsed(percentComplete);
+      
+      // If animation completed, clear the timer
+      if (percentComplete >= 100) {
+        clearInterval(timer);
+      }
+    }, 40); // Update roughly every 40ms for smooth animation
 
     return () => clearInterval(timer);
   }, []);
