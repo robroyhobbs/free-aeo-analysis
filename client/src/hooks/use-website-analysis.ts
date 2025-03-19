@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AnalysisResult, AnalysisStep } from "@/types";
@@ -7,168 +7,142 @@ interface UseWebsiteAnalysisOptions {
   onError?: (error: Error) => void;
 }
 
-// Animation constants
-const ANIMATION_DURATION_MS = 8000; // 8 seconds animation
-const ANIMATION_STEPS = [
-  { step: AnalysisStep.Crawling, endPercent: 25 },
-  { step: AnalysisStep.Analyzing, endPercent: 55 },
-  { step: AnalysisStep.Calculating, endPercent: 80 },
-  { step: AnalysisStep.Generating, endPercent: 100 }
-];
-
 export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
+  // Core state
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState<AnalysisStep>(AnalysisStep.Idle);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  
-  // References to track animation and analysis state
-  const animationRef = useRef<{
-    startTime: number;
-    timer: NodeJS.Timeout | null;
-    isComplete: boolean;
-    resultData: AnalysisResult | null;
-  }>({
-    startTime: 0,
-    timer: null,
-    isComplete: false,
-    resultData: null
-  });
+  const [isShowingResults, setIsShowingResults] = useState(false);
+  const [animationTimer, setAnimationTimer] = useState<NodeJS.Timeout | null>(null);
+  const [savedResult, setSavedResult] = useState<AnalysisResult | null>(null);
 
-  // Create a state to trigger effect when animation or result state changes
-  const [triggerCheck, setTriggerCheck] = useState(0);
+  // Animation duration in ms (8 seconds)
+  const ANIMATION_DURATION = 8000;
   
-  // Function to check and update state when both animation is complete and results are ready
-  const checkCompletionState = () => {
-    if (animationRef.current.isComplete && animationRef.current.resultData) {
-      setAnalysisResult(animationRef.current.resultData);
-      setCurrentStep(AnalysisStep.Complete);
-      
-      // Reset the animation state
-      animationRef.current.resultData = null;
-      animationRef.current.isComplete = false;
-    }
-  };
-  
-  // This effect handles the completion of both the animation and analysis
+  // Handle synchronization of animation completion and results
   useEffect(() => {
-    checkCompletionState();
-  }, [triggerCheck]);
-
-  // Start the animation sequence - guaranteed to run for exactly 8 seconds
-  const startAnimation = () => {
-    // Clear any existing animation
-    if (animationRef.current.timer) {
-      clearInterval(animationRef.current.timer);
+    if (progress >= 100 && savedResult) {
+      setAnalysisResult(savedResult);
+      setIsShowingResults(true);
+      setSavedResult(null);
     }
-    
-    // Reset progress and animation state
-    setProgress(0);
-    setCurrentStep(AnalysisStep.Crawling);
-    animationRef.current.isComplete = false;
-    animationRef.current.startTime = Date.now();
-    
-    // Frame rate for smooth animation (approximately 60fps)
-    const frameInterval = 16; // ~60fps
-    
-    // Start the animation timer
-    animationRef.current.timer = setInterval(() => {
-      const elapsedTime = Date.now() - animationRef.current.startTime;
-      
-      // Calculate progress as a percentage of the total animation time
-      const progressPercent = Math.min(100, Math.floor((elapsedTime / ANIMATION_DURATION_MS) * 100));
-      setProgress(progressPercent);
-      
-      // Determine the current step based on progress
-      for (let i = 0; i < ANIMATION_STEPS.length; i++) {
-        if (progressPercent <= ANIMATION_STEPS[i].endPercent) {
-          setCurrentStep(ANIMATION_STEPS[i].step);
-          break;
-        }
-      }
-      
-      // If we've reached 100%, complete the animation
-      if (progressPercent >= 100) {
-        if (animationRef.current.timer) {
-          clearInterval(animationRef.current.timer);
-          animationRef.current.timer = null;
-        }
-        animationRef.current.isComplete = true;
-        setTriggerCheck(prev => prev + 1);
-        // The completion check happens in the effect via triggerCheck
-      }
-    }, frameInterval);
-  };
+  }, [progress, savedResult]);
   
+  // API mutation
   const analysisMutation = useMutation({
     mutationFn: async (url: string) => {
       const response = await apiRequest("POST", "/api/analyze", { url });
       return response.json();
     },
     onMutate: () => {
-      // Reset state and start the animation
-      animationRef.current.resultData = null;
-      startAnimation();
-    },
-    onSuccess: (data: AnalysisResult) => {
-      // Store the result in our ref
-      animationRef.current.resultData = data;
-      setTriggerCheck(prev => prev + 1);
-      // The completion check will happen in the effect
-    },
-    onError: (error: Error) => {
-      // Stop the animation
-      if (animationRef.current.timer) {
-        clearInterval(animationRef.current.timer);
-        animationRef.current.timer = null;
+      // Reset state and start animation
+      setProgress(0);
+      setCurrentStep(AnalysisStep.Crawling);
+      setIsShowingResults(false);
+      setAnalysisResult(null);
+      setSavedResult(null);
+      
+      // Clear any existing timer
+      if (animationTimer) {
+        clearInterval(animationTimer);
       }
       
-      // Reset state
+      // Start new animation timer
+      const startTime = Date.now();
+      const newTimer = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const newProgress = Math.min(100, Math.round((elapsed / ANIMATION_DURATION) * 100));
+        
+        // Update progress
+        setProgress(newProgress);
+        
+        // Update step based on progress percentage
+        if (newProgress < 25) {
+          setCurrentStep(AnalysisStep.Crawling);
+        } else if (newProgress < 55) {
+          setCurrentStep(AnalysisStep.Analyzing);
+        } else if (newProgress < 80) {
+          setCurrentStep(AnalysisStep.Calculating);
+        } else {
+          setCurrentStep(AnalysisStep.Generating);
+        }
+        
+        // If animation completes
+        if (newProgress >= 100) {
+          clearInterval(newTimer);
+          setAnimationTimer(null);
+          setCurrentStep(AnalysisStep.Complete);
+        }
+      }, 80); // Update approximately every 80ms for smooth animation
+      
+      // Save timer reference
+      setAnimationTimer(newTimer);
+    },
+    onSuccess: (data: AnalysisResult) => {
+      // Save result data for when animation completes
+      setSavedResult(data);
+      
+      // If animation already finished, show results right away
+      if (progress >= 100) {
+        setAnalysisResult(data);
+        setIsShowingResults(true);
+        setSavedResult(null);
+      }
+    },
+    onError: (error: Error) => {
+      // Clear timer on error
+      if (animationTimer) {
+        clearInterval(animationTimer);
+        setAnimationTimer(null);
+      }
+      
+      // Reset progress
       setProgress(0);
       setCurrentStep(AnalysisStep.Idle);
       
-      // Call error handler if provided
+      // Call error handler
       if (options?.onError) {
         options.onError(error);
       }
     }
   });
   
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimer) {
+        clearInterval(animationTimer);
+      }
+    };
+  }, [animationTimer]);
+  
+  // Public API methods
   const analyze = (url: string) => {
-    setAnalysisResult(null);
     analysisMutation.mutate(url);
   };
   
   const reset = () => {
-    // Clear any running animation
-    if (animationRef.current.timer) {
-      clearInterval(animationRef.current.timer);
-      animationRef.current.timer = null;
+    // Clear any running timer
+    if (animationTimer) {
+      clearInterval(animationTimer);
+      setAnimationTimer(null);
     }
     
     // Reset state
     setProgress(0);
     setCurrentStep(AnalysisStep.Idle);
     setAnalysisResult(null);
-    animationRef.current.resultData = null;
-    animationRef.current.isComplete = false;
+    setIsShowingResults(false);
+    setSavedResult(null);
   };
-  
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (animationRef.current.timer) {
-        clearInterval(animationRef.current.timer);
-      }
-    };
-  }, []);
   
   return {
     analyze,
     reset,
-    isAnalyzing: analysisMutation.isPending,
+    isAnalyzing: analysisMutation.isPending && !isShowingResults,
     progress,
     currentStep,
     analysisResult,
-    isCompleted: currentStep === AnalysisStep.Complete,
+    isCompleted: isShowingResults,
   };
 }

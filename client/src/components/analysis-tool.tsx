@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useWebsiteAnalysis } from "@/hooks/use-website-analysis";
+import { useState, useEffect, useRef } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { LoadingStep } from "@/components/loading-step";
 import { ScoreCircle } from "@/components/score-circle";
 import { RecommendationCard } from "@/components/recommendation-card";
@@ -12,24 +13,53 @@ import {
   ScoreBreakdown, 
   Recommendation, 
   AnalysisStep, 
-  AnalysisScoreSummary 
+  AnalysisScoreSummary,
+  AnalysisResult
 } from "@/types";
 
+// Animation constants
+const ANIMATION_DURATION = 8000; // 8 seconds
+const ANIMATION_STEPS = [
+  { step: AnalysisStep.Crawling, endPercent: 25 },
+  { step: AnalysisStep.Analyzing, endPercent: 55 },
+  { step: AnalysisStep.Calculating, endPercent: 80 },
+  { step: AnalysisStep.Generating, endPercent: 100 }
+];
+
 export function AnalysisTool() {
+  // Form state
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const { toast } = useToast();
   
-  const { 
-    analyze, 
-    isAnalyzing, 
-    progress, 
-    currentStep, 
-    analysisResult, 
-    reset,
-    isCompleted
-  } = useWebsiteAnalysis({
-    onError: (error) => {
+  // UI state
+  const [viewState, setViewState] = useState<"input" | "analyzing" | "results">("input");
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<AnalysisStep>(AnalysisStep.Idle);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  
+  // Animation refs
+  const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingResultRef = useRef<AnalysisResult | null>(null);
+  
+  // API mutation
+  const analysisMutation = useMutation({
+    mutationFn: async (urlToAnalyze: string) => {
+      const response = await apiRequest("POST", "/api/analyze", { url: urlToAnalyze });
+      return response.json();
+    },
+    onError: (error: Error) => {
+      // Stop the animation and show error
+      if (animationTimerRef.current) {
+        clearInterval(animationTimerRef.current);
+        animationTimerRef.current = null;
+      }
+      
+      // Reset to input state and show error
+      setViewState("input");
+      setProgress(0);
+      setCurrentStep(AnalysisStep.Idle);
+      
       toast({
         title: "Analysis Failed",
         description: error.message,
@@ -39,6 +69,79 @@ export function AnalysisTool() {
     }
   });
 
+  // Start the animation sequence
+  const startAnimation = () => {
+    // Reset animation state
+    setProgress(0);
+    setCurrentStep(AnalysisStep.Crawling);
+    setViewState("analyzing");
+    pendingResultRef.current = null;
+    
+    // Clear any existing timer
+    if (animationTimerRef.current) {
+      clearInterval(animationTimerRef.current);
+    }
+    
+    // Track animation start time
+    const startTime = Date.now();
+    
+    // Create animation timer
+    animationTimerRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min(100, Math.floor((elapsed / ANIMATION_DURATION) * 100));
+      
+      // Update progress
+      setProgress(newProgress);
+      
+      // Update current step based on progress
+      for (let i = 0; i < ANIMATION_STEPS.length; i++) {
+        if (newProgress <= ANIMATION_STEPS[i].endPercent) {
+          setCurrentStep(ANIMATION_STEPS[i].step);
+          break;
+        }
+      }
+      
+      // Check if animation is complete
+      if (newProgress >= 100) {
+        // Clear timer
+        clearInterval(animationTimerRef.current!);
+        animationTimerRef.current = null;
+        
+        // Check if we have a pending result
+        if (pendingResultRef.current) {
+          setAnalysisResult(pendingResultRef.current);
+          setViewState("results");
+          pendingResultRef.current = null;
+        }
+      }
+    }, 80); // Update roughly every 80ms (12.5 fps)
+  };
+  
+  // Handle API response
+  useEffect(() => {
+    if (analysisMutation.data && viewState === "analyzing") {
+      // Store the result
+      pendingResultRef.current = analysisMutation.data;
+      
+      // If animation is already complete, show results immediately
+      if (progress >= 100) {
+        setAnalysisResult(analysisMutation.data);
+        setViewState("results");
+        pendingResultRef.current = null;
+      }
+    }
+  }, [analysisMutation.data, progress, viewState]);
+  
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimerRef.current) {
+        clearInterval(animationTimerRef.current);
+      }
+    };
+  }, []);
+
+  // URL validation
   const validateUrl = (value: string) => {
     setUrl(value);
     if (!value) {
@@ -56,23 +159,39 @@ export function AnalysisTool() {
     }
   };
 
+  // Start analysis
   const handleAnalyze = () => {
     if (validateUrl(url)) {
-      analyze(url);
+      startAnimation(); // Start animation first
+      analysisMutation.mutate(url); // Then trigger API call
     }
   };
 
+  // Reset everything
   const handleReset = () => {
+    // Clear any running timer
+    if (animationTimerRef.current) {
+      clearInterval(animationTimerRef.current);
+      animationTimerRef.current = null;
+    }
+    
+    // Reset form
     setUrl("");
     setUrlError("");
-    reset();
+    
+    // Reset state
+    setProgress(0);
+    setCurrentStep(AnalysisStep.Idle);
+    setViewState("input");
+    setAnalysisResult(null);
+    pendingResultRef.current = null;
   };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
       <Card className="overflow-hidden shadow-xl border-t-4 border-primary">
         {/* Analysis Input Section */}
-        {!isAnalyzing && !isCompleted && !analysisResult && (
+        {viewState === "input" && (
           <CardContent className="px-6 py-6">
             <div className="text-center mb-4">
               <h2 className="text-2xl font-semibold mb-2">Analyze Your Website</h2>
@@ -111,7 +230,7 @@ export function AnalysisTool() {
         )}
         
         {/* Analysis Loading Section */}
-        {isAnalyzing && !isCompleted && (
+        {viewState === "analyzing" && (
           <CardContent className="px-6 py-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-semibold mb-2">Analyzing Your Website</h2>
@@ -191,7 +310,7 @@ export function AnalysisTool() {
         )}
         
         {/* Analysis Results Section */}
-        {isCompleted && analysisResult && (
+        {viewState === "results" && analysisResult && (
           <>
             {/* Results Header with Score */}
             <div className="px-6 py-8 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
