@@ -74,6 +74,12 @@ export function AnalysisTool() {
   // Form state
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState("");
+  const [competitorUrl, setCompetitorUrl] = useState("");
+  const [competitorUrlError, setCompetitorUrlError] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [contentFocus, setContentFocus] = useState("");
+  const [analysisDepth, setAnalysisDepth] = useState<"standard" | "advanced">("standard");
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const { toast } = useToast();
   
   // UI state
@@ -90,7 +96,13 @@ export function AnalysisTool() {
   
   // API mutation
   const analysisMutation = useMutation({
-    mutationFn: async (urlToAnalyze: string) => {
+    mutationFn: async (params: {
+      url: string;
+      competitorUrl?: string;
+      industry?: string;
+      contentFocus?: string;
+      analysisDepth?: "standard" | "advanced";
+    }) => {
       try {
         // Add timeout to the fetch request
         const controller = new AbortController();
@@ -99,7 +111,7 @@ export function AnalysisTool() {
         const response = await apiRequest(
           "POST", 
           "/api/analyze", 
-          { url: urlToAnalyze }, 
+          params, 
           { signal: controller.signal }
         );
         
@@ -318,12 +330,46 @@ export function AnalysisTool() {
       return false;
     }
   };
+  
+  // Competitor URL validation
+  const validateCompetitorUrl = (value: string) => {
+    setCompetitorUrl(value);
+    if (!value) {
+      setCompetitorUrlError("");
+      return true; // Empty is valid as it's optional
+    }
+    
+    try {
+      new URL(value);
+      setCompetitorUrlError("");
+      return true;
+    } catch (e) {
+      setCompetitorUrlError("Please enter a valid competitor URL");
+      return false;
+    }
+  };
 
   // Start analysis
   const handleAnalyze = () => {
     if (validateUrl(url)) {
+      // Validate competitor URL if provided
+      if (competitorUrl && !validateCompetitorUrl(competitorUrl)) {
+        return;
+      }
+      
       startAnimation(); // Start animation first
-      analysisMutation.mutate(url); // Then trigger API call
+      
+      // Prepare analysis parameters
+      const analysisParams = {
+        url,
+        ...(competitorUrl ? { competitorUrl } : {}),
+        ...(industry ? { industry } : {}),
+        ...(contentFocus ? { contentFocus } : {}),
+        ...(analysisDepth !== "standard" ? { analysisDepth } : {})
+      };
+      
+      // Trigger API call
+      analysisMutation.mutate(analysisParams);
     }
   };
 
@@ -338,6 +384,12 @@ export function AnalysisTool() {
     // Reset form
     setUrl("");
     setUrlError("");
+    setCompetitorUrl("");
+    setCompetitorUrlError("");
+    setIndustry("");
+    setContentFocus("");
+    setAnalysisDepth("standard");
+    setShowAdvancedOptions(false);
     
     // Reset state
     setProgress(0);
