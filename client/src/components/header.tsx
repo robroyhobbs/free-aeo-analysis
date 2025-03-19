@@ -5,9 +5,9 @@ import { useState } from "react";
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
-    <header className="w-full bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-5">
+    <header className="w-full bg-white shadow-sm sticky top-0 z-50">
+      <div className="content-container">
+        <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
             <Link href="/">
               <div className="flex-shrink-0 flex items-center cursor-pointer">
@@ -24,12 +24,12 @@ export function Header() {
             </Link>
           </div>
           <nav className="hidden md:flex space-x-8 items-center">
-            <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium tracking-tight">Analyzer</Link>
-            <Link href="/guide" className="text-slate-800 hover:text-primary font-medium tracking-tight">AEO Guide</Link>
-            <Link href="/blog" className="text-slate-800 hover:text-primary font-medium tracking-tight">Blog</Link>
-            <Link href="/faq" className="text-slate-800 hover:text-primary font-medium tracking-tight">FAQ</Link>
+            <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">Analyzer</Link>
+            <Link href="/guide" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">AEO Guide</Link>
+            <Link href="/blog" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">Blog</Link>
+            <Link href="/faq" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">FAQ</Link>
             <Link href="/#analysis-tool">
-              <Button className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90 px-5 py-2.5">
+              <Button className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90 px-5 py-2.5 transition-all duration-200">
                 Get Started
               </Button>
             </Link>
@@ -45,14 +45,14 @@ export function Header() {
         
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-3 px-4">
-            <div className="flex flex-col space-y-4 pb-4">
-              <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2" onClick={() => setMobileMenuOpen(false)}>Analyzer</Link>
-              <Link href="/guide" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2" onClick={() => setMobileMenuOpen(false)}>AEO Guide</Link>
-              <Link href="/blog" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
-              <Link href="/faq" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
+          <div className="md:hidden py-3">
+            <div className="flex flex-col space-y-4 pb-4 border-t border-gray-100 pt-4 mt-2">
+              <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>Analyzer</Link>
+              <Link href="/guide" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>AEO Guide</Link>
+              <Link href="/blog" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
+              <Link href="/faq" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
               <Link href="/#analysis-tool" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="gradient-bg w-full py-2.5 mt-2">Get Started</Button>
+                <Button className="gradient-bg w-full py-2.5 mt-2 transition-all duration-200">Get Started</Button>
               </Link>
             </div>
           </div>

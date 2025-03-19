@@ -7,6 +7,14 @@
   .gradient-bg {
     @apply bg-gradient-to-r from-primary to-indigo-600 text-white;
   }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent;
+  }
+  
+  .content-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
 }
 
 @layer base {
