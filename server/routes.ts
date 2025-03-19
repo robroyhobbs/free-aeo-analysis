@@ -9,11 +9,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analyze website route
   app.post("/api/analyze", async (req: Request, res: Response) => {
     try {
-      // Validate the URL
-      const { url } = validUrlSchema.parse(req.body);
+      // Validate the request
+      const { url, competitorUrl, industry, contentFocus, analysisDepth } = validUrlSchema.parse(req.body);
       
-      // Check if we have a recent analysis for this URL
-      const existingAnalysis = await storage.getRecentAnalysisByUrl(url);
+      // Skip cache when advanced options are used
+      const useCache = !competitorUrl && !industry && !contentFocus && analysisDepth === 'standard';
+      
+      // Check if we have a recent analysis for this URL (only if not using advanced options)
+      let existingAnalysis = null;
+      if (useCache) {
+        existingAnalysis = await storage.getRecentAnalysisByUrl(url);
+      }
       
       if (existingAnalysis) {
         return res.json({
@@ -29,8 +35,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get website content
       const content = await getContent(url);
       
+      // Get competitor content if provided
+      let competitorContent = null;
+      if (competitorUrl) {
+        competitorContent = await getContent(competitorUrl);
+      }
+      
       // Analyze the content
-      const analysis = await analyzeWebsite(content);
+      const analysis = await analyzeWebsite(content, {
+        competitorContent,
+        industry,
+        contentFocus,
+        analysisDepth
+      });
       
       // Store the analysis result
       await storage.saveAnalysis({

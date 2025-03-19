@@ -37,5 +37,9 @@ export type Analysis = typeof analyses.$inferSelect;
 
 // URL validation schema
 export const validUrlSchema = z.object({
-  url: z.string().url("Please enter a valid URL")
+  url: z.string().url("Please enter a valid URL"),
+  competitorUrl: z.string().url("Please enter a valid competitor URL").optional(),
+  industry: z.string().optional(),
+  contentFocus: z.string().optional(),
+  analysisDepth: z.enum(['standard', 'advanced']).optional().default('standard')
 });
