@@ -4,6 +4,7 @@ import NotFound from "@/pages/not-found";
 import BlogPage from "@/pages/blog";
 import BlogDetailPage from "@/pages/blog-detail";
 import FAQPage from "@/pages/faq";
+import GuidePage from "@/pages/guide";
 
 function Router() {
   return (
@@ -12,6 +13,7 @@ function Router() {
       <Route path="/blog" component={BlogPage} />
       <Route path="/blog/:slug" component={BlogDetailPage} />
       <Route path="/faq" component={FAQPage} />
+      <Route path="/guide" component={GuidePage} />
       <Route component={NotFound} />
     </Switch>
   );

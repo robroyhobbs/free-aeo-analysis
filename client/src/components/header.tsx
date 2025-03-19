@@ -26,6 +26,7 @@ export function Header() {
           <nav className="hidden md:flex space-x-6 items-center">
             <Link href="/#features" className="text-slate-800 hover:text-primary font-medium">Features</Link>
             <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium">Analyzer</Link>
+            <Link href="/guide" className="text-slate-800 hover:text-primary font-medium">AEO Guide</Link>
             <Link href="/blog" className="text-slate-800 hover:text-primary font-medium">Blog</Link>
             <Link href="/faq" className="text-slate-800 hover:text-primary font-medium">FAQ</Link>
             <Link href="/#analysis-tool">
@@ -49,6 +50,7 @@ export function Header() {
             <div className="flex flex-col space-y-3 pb-3">
               <Link href="/#features" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Features</Link>
               <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Analyzer</Link>
+              <Link href="/guide" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>AEO Guide</Link>
               <Link href="/blog" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
               <Link href="/faq" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
               <Link href="/#analysis-tool" onClick={() => setMobileMenuOpen(false)}>

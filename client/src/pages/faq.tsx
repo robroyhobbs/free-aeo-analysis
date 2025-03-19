@@ -10,7 +10,8 @@ import {
 } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Search, Info, Settings, CreditCard, Lightbulb } from 'lucide-react';
 import { faqItems, FAQItem } from '@/lib/faq-data';
 
 export default function FAQPage() {

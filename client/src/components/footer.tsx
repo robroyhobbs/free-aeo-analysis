@@ -49,7 +49,7 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-medium text-white mb-4">AEO Resources</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-slate-400 hover:text-white">AEO Guide</a></li>
+              <li><Link href="/guide" className="text-slate-400 hover:text-white">AEO Guide</Link></li>
               <li><Link href="/blog" className="text-slate-400 hover:text-white">Blog</Link></li>
               <li><a href="#" className="text-slate-400 hover:text-white">Case Studies</a></li>
               <li><Link href="/faq" className="text-slate-400 hover:text-white">FAQ</Link></li>
