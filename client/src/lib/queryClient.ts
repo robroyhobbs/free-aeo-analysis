@@ -69,7 +69,8 @@ export async function apiRequest(
   if (needsCsrfToken) {
     try {
       const token = await getCsrfToken();
-      headers['X-CSRF-Token'] = token;
+      // Use the header name expected by csurf middleware
+      headers['CSRF-Token'] = token;
     } catch (error) {
       console.error('Failed to add CSRF token to request:', error);
       // Continue with the request even if CSRF token fetch fails
@@ -95,7 +96,7 @@ export async function apiRequest(
         resetCsrfToken();
         const newToken = await getCsrfToken();
         
-        const newHeaders = { ...headers, 'X-CSRF-Token': newToken };
+        const newHeaders = { ...headers, 'CSRF-Token': newToken };
         const retryOptions = {
           ...requestOptions,
           headers: newHeaders
@@ -137,7 +138,7 @@ export const getQueryFn: <T>(options: {
     if (needsCsrfToken) {
       try {
         const token = await getCsrfToken();
-        headers['X-CSRF-Token'] = token;
+        headers['CSRF-Token'] = token;
       } catch (error) {
         console.error('Failed to add CSRF token to GET request:', error);
       }
@@ -163,7 +164,7 @@ export const getQueryFn: <T>(options: {
           
           const retryRes = await fetch(url, {
             credentials: "include",
-            headers: { 'X-CSRF-Token': newToken }
+            headers: { 'CSRF-Token': newToken }
           });
           
           if (unauthorizedBehavior === "returnNull" && retryRes.status === 401) {
