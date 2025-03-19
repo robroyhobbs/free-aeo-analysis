@@ -2,11 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { checkAuthStatus, login as loginService, logout as logoutService } from '@/lib/authService';
 import { useQueryClient } from '@tanstack/react-query';
-
-interface User {
-  id: number;
-  username: string;
-}
+import type { User } from '@/lib/authService';
 
 interface LoginCredentials {
   username: string;
