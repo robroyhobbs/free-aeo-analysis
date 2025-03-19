@@ -5,6 +5,7 @@ import { analyzeWebsite, getContent } from "./analysis";
 import { validUrlSchema } from "@shared/schema";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 import { spawn } from 'child_process';
 import { ZodError } from "zod";
 import passport from "passport";
@@ -163,7 +164,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Path to the generator script
       const generatorPath = join(__dirname, '../scripts/generate-blog-post.js');
       
-      // Execute the script as a child process
+      console.log(`[Admin] Starting blog post generation using script: ${generatorPath}`);
+      
+      // Make sure the script exists before trying to execute it
+      if (!existsSync(generatorPath)) {
+        throw new Error(`Blog post generator script not found at path: ${generatorPath}`);
+      }
+      
+      // Execute the script as a child process with a timeout
       const process = spawn('node', [generatorPath, '--now'], {
         stdio: ['ignore', 'pipe', 'pipe']
       });
@@ -172,32 +180,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let errorOutput = '';
       
       process.stdout.on('data', (data) => {
-        output += data.toString();
+        const chunk = data.toString();
+        output += chunk;
+        console.log(`[Blog Generator] ${chunk.trim()}`);
       });
       
       process.stderr.on('data', (data) => {
-        errorOutput += data.toString();
+        const chunk = data.toString();
+        errorOutput += chunk;
+        console.error(`[Blog Generator Error] ${chunk.trim()}`);
       });
+      
+      // Set a timeout for the process
+      const timeout = setTimeout(() => {
+        if (!process.killed) {
+          process.kill();
+          console.error('[Admin] Blog generation process timed out after 30 seconds');
+        }
+      }, 30000);
       
       // Handle process completion
       process.on('close', (code) => {
+        clearTimeout(timeout);
+        
+        console.log(`[Admin] Blog generation process completed with code: ${code}`);
+        
         if (code === 0) {
-          return res.json({
-            success: true,
-            message: 'Blog post generated successfully',
-            output: output
-          });
+          // Check if the output indicates success
+          if (output.includes('Blog data file updated successfully')) {
+            return res.json({
+              success: true,
+              message: 'Blog post generated successfully',
+              output: output
+            });
+          } else {
+            // Process exited with code 0 but may not have updated the file
+            return res.status(500).json({
+              success: false,
+              message: 'Blog post generation completed but may not have updated the file',
+              output: output,
+              error: errorOutput || 'No specific error detected'
+            });
+          }
         } else {
           return res.status(500).json({
             success: false,
-            message: 'Failed to generate blog post',
-            error: errorOutput
+            message: `Failed to generate blog post (exit code: ${code})`,
+            error: errorOutput || 'No error output captured'
           });
         }
       });
+      
+      // Handle unexpected errors
+      process.on('error', (err) => {
+        clearTimeout(timeout);
+        console.error('[Admin] Error spawning blog generation process:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to start blog post generation process',
+          error: err.message
+        });
+      });
     } catch (error: any) {
       const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
-      console.error("Error generating blog post:", errorMessage);
+      console.error("[Admin] Error generating blog post:", errorMessage);
       return res.status(500).json({ 
         success: false,
         message: "Failed to generate blog post",

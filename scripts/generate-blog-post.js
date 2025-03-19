@@ -223,40 +223,73 @@ function getNextAvailableId() {
 // Main function to generate a blog post
 function generateBlogPost() {
   try {
+    console.log('Starting blog post generation process...');
+    
     // Get the current count of blog posts
     const currentBlogCount = getCurrentBlogCount();
+    console.log(`Current blog count: ${currentBlogCount}`);
     
     // Select the next topic based on the current blog count (cycling through the list)
     const topicIndex = currentBlogCount % blogTopics.length;
     const selectedTopic = blogTopics[topicIndex];
     
+    if (!selectedTopic) {
+      throw new Error(`Failed to select a valid topic. Index: ${topicIndex}, Available topics: ${blogTopics.length}`);
+    }
+    
+    console.log(`Selected topic: "${selectedTopic.title}"`);
+    
     // Select a random author and cover image
     const author = authors[Math.floor(Math.random() * authors.length)];
     const coverImage = coverImages[Math.floor(Math.random() * coverImages.length)];
     
+    if (!author || !coverImage) {
+      throw new Error('Failed to select author or cover image');
+    }
+    
+    // Generate a unique ID for the post
+    const newId = getNextAvailableId();
+    console.log(`Generated new post ID: ${newId}`);
+    
+    // Create slug from title
+    const slug = createSlug(selectedTopic.title);
+    
     // Generate new blog post
     const newPost = {
-      id: getNextAvailableId(),
+      id: newId,
       title: selectedTopic.title,
-      slug: createSlug(selectedTopic.title),
+      slug: slug,
       excerpt: `${selectedTopic.focus.slice(0, 120)}...`,
       content: generatePostContent(selectedTopic),
       author,
       publishedAt: new Date().toISOString(),
       readTime: Math.floor(Math.random() * 6) + 5, // Random read time between 5-10 minutes
       category: selectedTopic.category,
-      tags: selectedTopic.tags,
+      tags: selectedTopic.tags || ["AEO", "Content Strategy"], // Fallback tags if missing
       coverImage,
       featured: false // New posts are not featured by default
     };
     
-    // Update the blog-data.ts file with the new post
-    updateBlogDataFile(newPost);
+    // Validate the post object
+    if (!newPost.id || !newPost.title || !newPost.content) {
+      throw new Error('Generated post is missing required fields');
+    }
     
-    console.log(`New blog post generated: "${selectedTopic.title}"`);
+    console.log('Post object created successfully, updating blog data file...');
+    
+    // Update the blog-data.ts file with the new post
+    const updateSuccess = updateBlogDataFile(newPost);
+    
+    if (!updateSuccess) {
+      throw new Error('Failed to update blog data file');
+    }
+    
+    console.log(`New blog post generated successfully: "${selectedTopic.title}"`);
     return true;
   } catch (error) {
     console.error('Error generating blog post:', error);
+    // Log more detailed error information
+    console.error('Error details:', error.stack || 'No stack trace available');
     return false;
   }
 }
@@ -282,28 +315,43 @@ function updateBlogDataFile(newPost) {
     const blogDataFile = path.join(__dirname, '../client/src/blog/blog-data.ts');
     let content = fs.readFileSync(blogDataFile, 'utf8');
     
-    // Convert new post to string format
+    // Verify the file has the expected format before making changes
+    const arrayStartText = 'export const blogPosts: BlogPost[] = [';
+    const arrayStartPos = content.indexOf(arrayStartText);
+    
+    if (arrayStartPos === -1) {
+      throw new Error('Could not find blog posts array declaration in the file');
+    }
+    
+    // Convert new post to string format with careful escaping of quotes in content
+    const contentJson = JSON.stringify(newPost.content).replace(/"/g, '\\"').replace(/\\\\"/g, '\\\\"');
+    const tagsJson = JSON.stringify(newPost.tags);
+    
     const postString = `  {
     id: "${newPost.id}",
-    title: "${newPost.title}",
+    title: "${newPost.title.replace(/"/g, '\\"')}",
     slug: "${newPost.slug}",
-    excerpt: "${newPost.excerpt}",
-    content: ${JSON.stringify(newPost.content)},
+    excerpt: "${newPost.excerpt.replace(/"/g, '\\"')}",
+    content: "${contentJson.slice(1, -1)}",
     author: {
-      name: "${newPost.author.name}",
-      title: "${newPost.author.title}",
+      name: "${newPost.author.name.replace(/"/g, '\\"')}",
+      title: "${newPost.author.title.replace(/"/g, '\\"')}",
       avatar: ""
     },
     publishedAt: "${newPost.publishedAt}",
     readTime: ${newPost.readTime},
-    category: "${newPost.category}",
-    tags: ${JSON.stringify(newPost.tags)},
+    category: "${newPost.category.replace(/"/g, '\\"')}",
+    tags: ${tagsJson},
     coverImage: "${newPost.coverImage}",
     featured: ${newPost.featured}
   },`;
     
+    // Make a backup of the file before modifying it
+    const backupFile = `${blogDataFile}.backup.${Date.now()}.ts`;
+    fs.writeFileSync(backupFile, content, 'utf8');
+    console.log(`Backup created at ${backupFile}`);
+    
     // Find the position to insert the new post (after the opening bracket of the blogPosts array)
-    const arrayStartPos = content.indexOf('export const blogPosts: BlogPost[] = [');
     const insertPos = content.indexOf('[', arrayStartPos) + 1;
     
     // Insert the new post at the beginning of the array
@@ -312,10 +360,18 @@ function updateBlogDataFile(newPost) {
       '\n' + postString + 
       content.slice(insertPos);
     
+    // Verify the updated content still has proper syntax
+    if (!updatedContent.includes(arrayStartText) || 
+        !updatedContent.includes(postString) ||
+        updatedContent.split('{').length !== content.split('{').length + 1) {
+      throw new Error('Generated content appears malformed');
+    }
+    
     // Write the updated content back to the file
     fs.writeFileSync(blogDataFile, updatedContent, 'utf8');
     
     console.log('Blog data file updated successfully');
+    return true;
   } catch (error) {
     console.error('Error updating blog data file:', error);
     throw error;
