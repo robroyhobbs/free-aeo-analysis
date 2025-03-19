@@ -25,6 +25,7 @@ export interface ScoreBreakdown {
   score: number;
   weight: number;
   details: string;
+  example?: string; // Real example from the website
 }
 
 export interface AnalysisScoreSummary {

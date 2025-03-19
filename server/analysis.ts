@@ -233,13 +233,13 @@ function analyzeContent(content: WebsiteContent): ScoreBreakdown[] {
 }
 
 // Analysis functions for each criterion
-function analyzeQuestionBasedContent(content: WebsiteContent): number {
+function analyzeQuestionBasedContent(content: WebsiteContent): { score: number; example: string } {
   // Count question marks in headers
   const headerQuestions = [
     ...content.headers.h1, 
     ...content.headers.h2, 
     ...content.headers.h3
-  ].filter(h => h.includes("?")).length;
+  ].filter(h => h.includes("?"));
   
   // Look for FAQ schemas
   const hasFaqSchema = content.schema.some(
@@ -253,28 +253,51 @@ function analyzeQuestionBasedContent(content: WebsiteContent): number {
   
   // Check for question-answer patterns in content
   const textLines = content.text.split(/\n|\r\n/).filter(line => line.trim().length > 0);
-  let questionAnswerPairs = 0;
+  let questionAnswerPairs: { question: string; answer: string }[] = [];
   
   for (let i = 0; i < textLines.length - 1; i++) {
     if (textLines[i].trim().endsWith("?") && textLines[i + 1].trim().length > 20) {
-      questionAnswerPairs++;
+      questionAnswerPairs.push({
+        question: textLines[i].trim(),
+        answer: textLines[i + 1].trim()
+      });
     }
   }
   
   // Calculate score
   let score = 50; // Base score
   
-  if (headerQuestions > 5) score += 15;
-  else if (headerQuestions > 2) score += 10;
-  else if (headerQuestions > 0) score += 5;
+  if (headerQuestions.length > 5) score += 15;
+  else if (headerQuestions.length > 2) score += 10;
+  else if (headerQuestions.length > 0) score += 5;
   
   if (hasFaqSchema) score += 20;
   if (hasFaqSection) score += 10;
-  if (questionAnswerPairs > 5) score += 15;
-  else if (questionAnswerPairs > 2) score += 10;
-  else if (questionAnswerPairs > 0) score += 5;
+  if (questionAnswerPairs.length > 5) score += 15;
+  else if (questionAnswerPairs.length > 2) score += 10;
+  else if (questionAnswerPairs.length > 0) score += 5;
   
-  return Math.min(Math.max(score, 0), 100);
+  // Find the best example
+  let example = "No question-based content found";
+  
+  // First try to get a question from the header
+  if (headerQuestions.length > 0) {
+    example = `Header question: "${headerQuestions[0]}"`;
+  }
+  // Then try to get a question-answer pair
+  else if (questionAnswerPairs.length > 0) {
+    const pair = questionAnswerPairs[0];
+    example = `Q: "${pair.question.substring(0, 120)}${pair.question.length > 120 ? '...' : ''}"`;
+  }
+  // If nothing else, mention FAQ schema if present
+  else if (hasFaqSchema) {
+    example = "Page has FAQ schema markup but no visible questions found";
+  }
+  
+  return { 
+    score: Math.min(Math.max(score, 0), 100),
+    example 
+  };
 }
 
 function analyzeStructuredData(content: WebsiteContent): number {
