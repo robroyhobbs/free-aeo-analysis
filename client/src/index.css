@@ -17,6 +17,37 @@
   body {
     @apply font-sans bg-slate-50 text-slate-800 min-h-screen;
   }
+  
+  /* Typography spacing standards */
+  h1 {
+    @apply text-4xl font-bold tracking-tight leading-tight mb-6;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold tracking-tight leading-tight mb-5;
+  }
+  
+  h3 {
+    @apply text-2xl font-medium tracking-tight leading-snug mb-4;
+  }
+  
+  h4 {
+    @apply text-xl font-medium tracking-tight leading-snug mb-3;
+  }
+  
+  p {
+    @apply text-base leading-relaxed mb-4;
+  }
+  
+  /* Standard spacing for content sections */
+  section {
+    @apply py-12;
+  }
+  
+  /* Container padding standardization */
+  .content-container {
+    @apply px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
+  }
 }
 
 .gradient-text {
@@ -323,55 +354,59 @@
 
 /* Enhanced Blog Typography */
 .prose h1 {
-  @apply text-3xl font-bold mb-8 text-gray-900;
+  @apply text-3xl font-bold mb-8 text-gray-900 tracking-tight leading-tight;
 }
 
 .prose h2 {
-  @apply text-2xl font-semibold mt-10 mb-5 text-gray-800 pb-2 border-b border-gray-200;
+  @apply text-2xl font-semibold mt-12 mb-6 text-gray-800 pb-2 border-b border-gray-200 tracking-tight leading-tight;
 }
 
 .prose h3 {
-  @apply text-xl font-medium mt-8 mb-4 text-gray-800;
+  @apply text-xl font-medium mt-10 mb-5 text-gray-800 tracking-tight leading-snug;
+}
+
+.prose h4 {
+  @apply text-lg font-medium mt-8 mb-4 text-gray-800 tracking-tight leading-snug;
 }
 
 .prose p {
-  @apply text-gray-700 mb-5 leading-relaxed;
+  @apply text-gray-700 mb-6 leading-relaxed text-base tracking-normal;
 }
 
 .prose ul {
-  @apply pl-6 mb-5 space-y-2;
+  @apply pl-8 mb-6 space-y-3;
 }
 
 .prose ul li {
-  @apply text-gray-700 list-disc;
+  @apply text-gray-700 list-disc leading-relaxed;
 }
 
 .prose ol {
-  @apply pl-6 mb-5 space-y-2;
+  @apply pl-8 mb-6 space-y-3;
 }
 
 .prose ol li {
-  @apply text-gray-700 list-decimal;
+  @apply text-gray-700 list-decimal leading-relaxed;
 }
 
 .prose blockquote {
-  @apply pl-4 border-l-4 border-primary/30 italic my-6 bg-primary/5 py-2 rounded-sm;
+  @apply pl-6 border-l-4 border-primary/30 italic my-8 bg-primary/5 py-4 px-4 rounded-sm;
 }
 
 .prose blockquote p {
-  @apply text-gray-600;
+  @apply text-gray-600 mb-0;
 }
 
 .prose code {
-  @apply bg-gray-100 px-1 py-0.5 rounded text-sm text-gray-800;
+  @apply bg-gray-100 px-1.5 py-0.5 rounded text-sm text-gray-800 font-mono;
 }
 
 .prose pre {
-  @apply bg-gray-800 rounded-md p-4 overflow-x-auto my-6;
+  @apply bg-gray-800 rounded-md p-5 overflow-x-auto my-8;
 }
 
 .prose pre code {
-  @apply bg-transparent text-gray-100 p-0;
+  @apply bg-transparent text-gray-100 p-0 text-sm leading-relaxed;
 }
 
 .prose a {
@@ -379,25 +414,45 @@
 }
 
 .prose strong {
-  @apply font-semibold text-gray-800;
+  @apply font-semibold text-gray-900;
 }
 
 .prose img {
-  @apply rounded-md my-6 shadow-md;
+  @apply rounded-md my-8 shadow-md mx-auto;
+}
+
+.prose figure {
+  @apply my-8;
+}
+
+.prose figcaption {
+  @apply text-sm text-gray-500 text-center mt-2 italic;
 }
 
 .prose table {
-  @apply w-full border-collapse my-6;
+  @apply w-full border-collapse my-8;
 }
 
 .prose table th {
-  @apply bg-gray-100 px-4 py-2 text-left font-medium text-gray-700 border border-gray-200;
+  @apply bg-gray-100 px-5 py-3 text-left font-medium text-gray-700 border border-gray-200;
 }
 
 .prose table td {
-  @apply px-4 py-2 border border-gray-200 text-gray-700;
+  @apply px-5 py-3 border border-gray-200 text-gray-700;
 }
 
 .prose hr {
-  @apply my-8 border-gray-200;
+  @apply my-10 border-gray-200;
+}
+
+.prose .admonition {
+  @apply bg-blue-50 border-l-4 border-blue-500 p-5 rounded-r-md my-8;
+}
+
+.prose .admonition-title {
+  @apply font-bold text-blue-700 mb-2;
+}
+
+.prose .admonition p {
+  @apply mb-0;
 }
