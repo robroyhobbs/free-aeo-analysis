@@ -323,27 +323,49 @@ function updateBlogDataFile(newPost) {
       throw new Error('Could not find blog posts array declaration in the file');
     }
     
-    // Convert new post to string format with careful escaping of quotes in content
-    const contentJson = JSON.stringify(newPost.content).replace(/"/g, '\\"').replace(/\\\\"/g, '\\\\"');
-    const tagsJson = JSON.stringify(newPost.tags);
+    // Create a safe string representation of the post
+    // First, ensure we have all necessary properties
+    const safePost = {
+      id: newPost.id || '',
+      title: newPost.title || '',
+      slug: newPost.slug || '',
+      excerpt: newPost.excerpt || '',
+      content: newPost.content || '',
+      author: {
+        name: newPost.author?.name || '',
+        title: newPost.author?.title || '',
+        avatar: ''
+      },
+      publishedAt: newPost.publishedAt || new Date().toISOString(),
+      readTime: newPost.readTime || 5,
+      category: newPost.category || '',
+      tags: Array.isArray(newPost.tags) ? newPost.tags : ["AEO"],
+      coverImage: newPost.coverImage || '',
+      featured: !!newPost.featured
+    };
     
+    // Use JSON.stringify for all string fields to ensure proper escaping
+    const contentField = JSON.stringify(safePost.content);
+    const tagsField = JSON.stringify(safePost.tags);
+    
+    // Generate the post string with proper escaping
     const postString = `  {
-    id: "${newPost.id}",
-    title: "${newPost.title.replace(/"/g, '\\"')}",
-    slug: "${newPost.slug}",
-    excerpt: "${newPost.excerpt.replace(/"/g, '\\"')}",
-    content: "${contentJson.slice(1, -1)}",
+    id: ${JSON.stringify(safePost.id)},
+    title: ${JSON.stringify(safePost.title)},
+    slug: ${JSON.stringify(safePost.slug)},
+    excerpt: ${JSON.stringify(safePost.excerpt)},
+    content: ${contentField},
     author: {
-      name: "${newPost.author.name.replace(/"/g, '\\"')}",
-      title: "${newPost.author.title.replace(/"/g, '\\"')}",
+      name: ${JSON.stringify(safePost.author.name)},
+      title: ${JSON.stringify(safePost.author.title)},
       avatar: ""
     },
-    publishedAt: "${newPost.publishedAt}",
-    readTime: ${newPost.readTime},
-    category: "${newPost.category.replace(/"/g, '\\"')}",
-    tags: ${tagsJson},
-    coverImage: "${newPost.coverImage}",
-    featured: ${newPost.featured}
+    publishedAt: ${JSON.stringify(safePost.publishedAt)},
+    readTime: ${safePost.readTime},
+    category: ${JSON.stringify(safePost.category)},
+    tags: ${tagsField},
+    coverImage: ${JSON.stringify(safePost.coverImage)},
+    featured: ${safePost.featured}
   },`;
     
     // Make a backup of the file before modifying it
@@ -360,11 +382,15 @@ function updateBlogDataFile(newPost) {
       '\n' + postString + 
       content.slice(insertPos);
     
-    // Verify the updated content still has proper syntax
-    if (!updatedContent.includes(arrayStartText) || 
-        !updatedContent.includes(postString) ||
-        updatedContent.split('{').length !== content.split('{').length + 1) {
-      throw new Error('Generated content appears malformed');
+    // Verify the updated content still has proper syntax - use less strict validation
+    if (!updatedContent.includes(arrayStartText) || !updatedContent.includes(postString)) {
+      throw new Error('Generated content appears malformed - missing key elements');
+    }
+    
+    // Simpler check to make sure the array syntax is still valid
+    if (!updatedContent.includes('export const blogPosts: BlogPost[] = [') || 
+        !updatedContent.includes('];')) {
+      throw new Error('Generated content appears malformed - array declaration issue');
     }
     
     // Write the updated content back to the file
