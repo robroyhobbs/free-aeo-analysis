@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+import { apiRequest } from "./queryClient";
 
 export interface User {
   id: number;
@@ -23,66 +24,63 @@ export interface LogoutResponse {
 
 // Auth service functions
 export async function checkAuthStatus(): Promise<AuthStatusResponse> {
-  const response = await fetch('/api/auth/status', {
-    credentials: 'include'
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to check auth status: ${response.status}`);
+  try {
+    const response = await apiRequest('GET', '/api/auth/status');
+    return await response.json();
+  } catch (error) {
+    console.error('Auth status check failed:', error);
+    return { authenticated: false };
   }
-  
-  return await response.json();
 }
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
-  const response = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ username, password }),
-    credentials: 'include'
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Login failed');
+  try {
+    const response = await apiRequest(
+      'POST', 
+      '/api/auth/login', 
+      { username, password }
+    );
+    
+    return await response.json();
+  } catch (error) {
+    // If we get a specific error message from the server, use it
+    if (error instanceof Error) {
+      throw error;
+    }
+    // Otherwise use a generic message
+    throw new Error('Login failed. Please try again.');
   }
-  
-  return data;
 }
 
 export async function logout(): Promise<LogoutResponse> {
-  const response = await fetch('/api/auth/logout', {
-    method: 'POST',
-    credentials: 'include'
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'Logout failed');
+  try {
+    const response = await apiRequest('POST', '/api/auth/logout');
+    return await response.json();
+  } catch (error) {
+    // If we get a specific error message from the server, use it
+    if (error instanceof Error) {
+      throw error;
+    }
+    // Otherwise use a generic message
+    throw new Error('Logout failed. Please try again.');
   }
-  
-  return data;
 }
 
 // Generate a blog post (protected endpoint requiring auth)
 export async function generateBlogPost(): Promise<{ success: boolean; message: string; output?: string }> {
-  const response = await fetch('/api/admin/generate-blog', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include'
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || data.error || 'Failed to generate blog post');
+  try {
+    const response = await apiRequest('POST', '/api/admin/generate-blog');
+    return await response.json();
+  } catch (error) {
+    console.error('Blog post generation failed:', error);
+    
+    // If we get a specific error message from the server, use it
+    if (error instanceof Error) {
+      throw error;
+    }
+    // Otherwise use a generic message
+    throw new Error('Failed to generate blog post. Please try again.');
   }
-  
-  return data;
 }
 
 // Invalidate any cached queries when auth state changes
