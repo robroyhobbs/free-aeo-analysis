@@ -8,7 +8,7 @@ interface AILoadingAnimationProps {
 
 export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimationProps) {
   return (
-    <div className="relative w-full py-6">
+    <div className="w-full max-w-xl mx-auto">
       {/* Main container with neural network grid background */}
       <div className="relative bg-slate-50 rounded-xl border border-slate-200 overflow-hidden p-6">
         {/* Neural network background grid */}
@@ -17,6 +17,7 @@ export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimati
             className="w-full h-full opacity-10"
             viewBox="0 0 100 100"
             xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="xMidYMid meet"
           >
             {/* Horizontal lines */}
             <line x1="0" y1="25" x2="100" y2="25" stroke="#6366F1" strokeWidth="0.2" />
@@ -127,8 +128,8 @@ export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimati
         </div>
         
         {/* Brain visualization at center */}
-        <div className="relative flex justify-center items-center py-8">
-          <div className="relative w-24 h-24 flex items-center justify-center">
+        <div className="relative flex justify-center items-center py-6">
+          <div className="relative w-20 h-20 flex items-center justify-center">
             {/* Brain icon with pulsing animation */}
             <div className="absolute inset-0 rounded-full bg-indigo-100 opacity-70 animate-thinking"></div>
             <svg
@@ -136,7 +137,7 @@ export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimati
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
-              className="w-12 h-12 text-primary"
+              className="w-10 h-10 text-primary"
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
@@ -195,20 +196,20 @@ export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimati
             </svg>
             
             {/* Central pulsing core */}
-            <div className="absolute w-4 h-4 bg-primary rounded-full opacity-70 animate-pulse"></div>
+            <div className="absolute w-3 h-3 bg-primary rounded-full opacity-70 animate-pulse"></div>
           </div>
           
           {/* Data flow streams around brain */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-36 h-36 rounded-full border-4 border-transparent animate-spin-slow opacity-20 border-t-primary border-l-primary"></div>
+            <div className="w-28 h-28 rounded-full border-2 border-transparent animate-spin-slow opacity-20 border-t-primary border-l-primary"></div>
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-48 h-48 rounded-full border-4 border-transparent animate-spin-slow opacity-10 border-r-primary border-b-primary" style={{ animationDirection: "reverse", animationDuration: "7s" }}></div>
+            <div className="w-36 h-36 rounded-full border-2 border-transparent animate-spin-slow opacity-10 border-r-primary border-b-primary" style={{ animationDirection: "reverse", animationDuration: "7s" }}></div>
           </div>
         </div>
         
         {/* Data flow indicators */}
-        <div className="w-3/4 mx-auto mt-4">
+        <div className="w-3/4 mx-auto mt-2">
           <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
             <div 
               className="h-full animate-data-flow rounded-full"
@@ -218,7 +219,7 @@ export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimati
         </div>
         
         {/* Activity indicators */}
-        <div className="mt-4 grid grid-cols-4 gap-2">
+        <div className="mt-3 grid grid-cols-4 gap-2">
           {[1, 2, 3, 4].map((idx) => (
             <div 
               key={idx}
@@ -228,7 +229,7 @@ export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimati
         </div>
         
         {/* Processing bar */}
-        <div className="mt-6 h-1.5 w-1/2 mx-auto bg-slate-100 rounded-full overflow-hidden">
+        <div className="mt-4 h-1.5 w-1/2 mx-auto bg-slate-100 rounded-full overflow-hidden">
           <div className="h-full w-full bg-gradient-to-r from-indigo-300 via-primary to-indigo-300 animate-data-flow" style={{ backgroundSize: "200% 100%" }}></div>
         </div>
       </div>

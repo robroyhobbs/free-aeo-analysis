@@ -452,7 +452,7 @@ export function AnalysisTool() {
               </div>
               
               {/* AI Brain Visualization with Neural Network */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <AILoadingAnimation 
                   step={
                     currentStep === AnalysisStep.Idle ? 0 :
@@ -465,10 +465,15 @@ export function AnalysisTool() {
                 />
               </div>
               
-              {/* Result Skeleton Preview */}
-              <div className="mb-8 opacity-50 transition-opacity duration-500" style={{ opacity: progress > 50 ? 0.7 : 0.3 }}>
-                <AnalysisSkeleton />
-              </div>
+              {/* Result Skeleton Preview - Only shown when approaching completion */}
+              {progress > 35 && (
+                <div 
+                  className="mb-6 opacity-0 transition-opacity duration-1000" 
+                  style={{ opacity: progress > 50 ? (progress > 75 ? 0.8 : 0.5) : 0.3 }}
+                >
+                  <AnalysisSkeleton />
+                </div>
+              )}
               
               {/* Current Process Information */}
               <div className="text-center bg-slate-50 p-4 rounded-lg border border-slate-200 relative overflow-hidden">
