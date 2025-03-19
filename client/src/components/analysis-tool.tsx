@@ -962,7 +962,14 @@ export function AnalysisTool() {
                                 animationDelay: `${index * 120 + 400}ms` 
                               }}
                             >
-                              {factor.details}
+                              <div>{factor.details}</div>
+                              
+                              {factor.example && (
+                                <div className="mt-2 text-xs text-slate-500 italic border-l-2 border-blue-300 pl-2">
+                                  <div className="font-medium text-slate-700 mb-0.5">Example from your website:</div>
+                                  <div>{factor.example}</div>
+                                </div>
+                              )}
                             </div>
                           </td>
                         </tr>

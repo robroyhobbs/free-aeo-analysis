@@ -194,23 +194,9 @@ function analyzeContent(content: WebsiteContent): ScoreBreakdown[] {
       }
       
       case "Content Clarity": {
-        // We'll update this function later but handle it safely for now
-        if (typeof analyzeContentClarity(content) === 'object') {
-          const result = analyzeContentClarity(content) as any;
-          score = result.score;
-          example = result.example || "";
-        } else {
-          score = analyzeContentClarity(content) as number;
-          
-          // Extract a basic example since the function hasn't been updated yet
-          const paragraphs = content.text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
-          if (paragraphs.length > 0) {
-            const sampleParagraph = paragraphs[0].substring(0, 100);
-            example = `Sample text: "${sampleParagraph}${sampleParagraph.length >= 100 ? '...' : ''}"`;
-          } else {
-            example = "No clear paragraph structure found";
-          }
-        }
+        const result = analyzeContentClarity(content);
+        score = result.score;
+        example = result.example;
         
         details = score >= 80 
           ? "Clear writing with good formatting and concise points" 
@@ -221,21 +207,9 @@ function analyzeContent(content: WebsiteContent): ScoreBreakdown[] {
       }
       
       case "Semantic Keywords": {
-        // We'll update this function later but handle it safely for now
-        if (typeof analyzeSemanticKeywords(content) === 'object') {
-          const result = analyzeSemanticKeywords(content) as any;
-          score = result.score;
-          example = result.example || "";
-        } else {
-          score = analyzeSemanticKeywords(content) as number;
-          
-          // Extract meta keywords as a basic example
-          if (content.meta && content.meta.keywords) {
-            example = `Meta keywords: "${content.meta.keywords.substring(0, 100)}${content.meta.keywords.length >= 100 ? '...' : ''}"`;
-          } else {
-            example = "No meta keywords found";
-          }
-        }
+        const result = analyzeSemanticKeywords(content);
+        score = result.score;
+        example = result.example;
         
         details = score >= 80 
           ? "Excellent use of related terms and semantic context" 
@@ -246,29 +220,9 @@ function analyzeContent(content: WebsiteContent): ScoreBreakdown[] {
       }
       
       case "Content Freshness": {
-        // We'll update this function later but handle it safely for now
-        if (typeof analyzeContentFreshness(content) === 'object') {
-          const result = analyzeContentFreshness(content) as any;
-          score = result.score;
-          example = result.example || "";
-        } else {
-          score = analyzeContentFreshness(content) as number;
-          
-          // Use last modified date as an example if available
-          if (content.lastModified) {
-            example = `Last modified: ${content.lastModified}`;
-          } else {
-            // Try to find a date in the content
-            const dateRegex = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2},? \d{4}\b/gi;
-            const dateMatches = content.text.match(dateRegex) || [];
-            
-            if (dateMatches.length > 0) {
-              example = `Date found in content: ${dateMatches[0]}`;
-            } else {
-              example = "No date information found";
-            }
-          }
-        }
+        const result = analyzeContentFreshness(content);
+        score = result.score;
+        example = result.example;
         
         details = score >= 80 
           ? "Content is recent and regularly updated" 
@@ -279,39 +233,9 @@ function analyzeContent(content: WebsiteContent): ScoreBreakdown[] {
       }
       
       case "Authority Signals": {
-        // We'll update this function later but handle it safely for now
-        if (typeof analyzeAuthoritySignals(content) === 'object') {
-          const result = analyzeAuthoritySignals(content) as any;
-          score = result.score;
-          example = result.example || "";
-        } else {
-          score = analyzeAuthoritySignals(content) as number;
-          
-          // Extract an authority link as an example if available
-          const links = content.links;
-          const authorityDomains = [
-            "wikipedia.org", "gov", "edu", "harvard", "stanford", "mit",
-            "bbc", "nytimes", "reuters", "bloomberg", "wsj", "economist"
-          ];
-          
-          let authorityLink = "";
-          
-          for (const link of links) {
-            for (const domain of authorityDomains) {
-              if (link.includes(domain)) {
-                authorityLink = link;
-                break;
-              }
-            }
-            if (authorityLink) break;
-          }
-          
-          if (authorityLink) {
-            example = `Authority link: ${authorityLink}`;
-          } else {
-            example = "No authority links found";
-          }
-        }
+        const result = analyzeAuthoritySignals(content);
+        score = result.score;
+        example = result.example;
         
         details = score >= 80 
           ? "Strong authority signals with citations and expert sources" 
@@ -499,7 +423,7 @@ function analyzeStructuredData(content: WebsiteContent): { score: number; exampl
   };
 }
 
-function analyzeContentClarity(content: WebsiteContent): number {
+function analyzeContentClarity(content: WebsiteContent): { score: number; example: string } {
   // Check for short paragraphs (clarity indicator)
   const paragraphs = content.text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
   const avgParagraphLength = paragraphs.reduce((sum, p) => sum + p.length, 0) / (paragraphs.length || 1);
@@ -538,10 +462,64 @@ function analyzeContentClarity(content: WebsiteContent): number {
   // Highlighted text improves scanability
   if (hasHighlightedText) score += 10;
   
-  return Math.min(Math.max(score, 0), 100);
+  // Extract examples for clarity features
+  let example = "";
+  
+  // Try to find a good example of content clarity based on which features are present
+  if (hasListElements) {
+    // Try to extract a list example
+    const listRegex = /<[ou]l[^>]*>[\s\S]*?<\/[ou]l>/i;
+    const listMatch = content.html.match(listRegex);
+    if (listMatch) {
+      // Extract just the first few list items to keep it concise
+      const itemRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+      const items = [];
+      let match;
+      let count = 0;
+      while ((match = itemRegex.exec(listMatch[0])) !== null && count < 2) {
+        items.push(match[1].replace(/<[^>]*>/g, '').trim());
+        count++;
+      }
+      if (items.length > 0) {
+        example = `List structure: "${items.join(', ')}${items.length < count ? '...' : ''}"`;
+      }
+    }
+  } else if (headingsRatio > 1) {
+    // Get an example of heading structure
+    const headings = [...content.headers.h1, ...content.headers.h2, ...content.headers.h3].slice(0, 2);
+    if (headings.length > 0) {
+      example = `Heading structure: "${headings.join(' → ')}"`;
+    }
+  } else if (paragraphs.length > 0) {
+    // Show short paragraph example
+    const shortestParagraph = paragraphs
+      .filter(p => p.length > 20) // Avoid very short fragments
+      .sort((a, b) => a.length - b.length)[0] || paragraphs[0];
+      
+    if (shortestParagraph) {
+      const truncated = shortestParagraph.substring(0, 100);
+      example = `Paragraph example: "${truncated}${truncated.length < shortestParagraph.length ? '...' : ''}"`;
+    }
+  }
+  
+  // If no specific example was found, provide generic feedback based on score
+  if (!example) {
+    if (score >= 80) {
+      example = "Well-structured content with good use of headings and formatting";
+    } else if (score >= 60) {
+      example = "Reasonably structured content but could improve readability";
+    } else {
+      example = "Content structure needs improvement for better readability";
+    }
+  }
+  
+  return {
+    score: Math.min(Math.max(score, 0), 100),
+    example
+  };
 }
 
-function analyzeSemanticKeywords(content: WebsiteContent): number {
+function analyzeSemanticKeywords(content: WebsiteContent): { score: number; example: string } {
   // For a proper implementation, this would analyze content for semantic keywords
   // using NLP techniques. For this demo, we'll use a simpler approach.
   
@@ -569,9 +547,15 @@ function analyzeSemanticKeywords(content: WebsiteContent): number {
   // Check text for related term coverage
   let totalMatchedGroups = 0;
   let totalTermMatches = 0;
+  let matchedTerms: Record<string, number> = {};
+  let bestMatchedGroup: { name: string, terms: string[] } | null = null;
   
-  for (const group of semanticGroups) {
+  const groupNames = ["SEO", "Marketing", "Technology", "Business", "E-commerce"];
+  
+  for (let i = 0; i < semanticGroups.length; i++) {
+    const group = semanticGroups[i];
     let groupMatches = 0;
+    let groupMatchedTerms: string[] = [];
     
     for (const term of group) {
       const regex = new RegExp(`\\b${term}\\b`, 'gi');
@@ -580,12 +564,22 @@ function analyzeSemanticKeywords(content: WebsiteContent): number {
       if (matches > 0) {
         groupMatches++;
         totalTermMatches += matches;
+        matchedTerms[term] = matches;
+        groupMatchedTerms.push(term);
       }
     }
     
     // If a group has multiple terms present, count it as a semantic match
     if (groupMatches >= 3) {
       totalMatchedGroups++;
+      
+      // Track the group with the most matches to use as an example
+      if (!bestMatchedGroup || groupMatchedTerms.length > bestMatchedGroup.terms.length) {
+        bestMatchedGroup = {
+          name: groupNames[i],
+          terms: groupMatchedTerms
+        };
+      }
     }
   }
   
@@ -607,10 +601,39 @@ function analyzeSemanticKeywords(content: WebsiteContent): number {
     score += 10;
   }
   
-  return Math.min(Math.max(score, 0), 100);
+  // Generate example based on findings
+  let example = "";
+  
+  // First try to use meta keywords if available
+  if (content.meta && content.meta.keywords) {
+    example = `Meta keywords: "${content.meta.keywords.substring(0, 100)}${content.meta.keywords.length > 100 ? '...' : ''}"`;
+  }
+  // Then try to use matched semantic group
+  else if (bestMatchedGroup) {
+    example = `${bestMatchedGroup.name} semantic terms found: ${bestMatchedGroup.terms.slice(0, 5).join(', ')}${bestMatchedGroup.terms.length > 5 ? '...' : ''}`;
+  }
+  // Or title keywords
+  else if (title) {
+    example = `Title keyword context: "${title}"`;
+  }
+  // If nothing else, use generic message based on score
+  else {
+    if (score >= 80) {
+      example = "Strong semantic keyword coverage";
+    } else if (score >= 60) {
+      example = "Adequate semantic keyword usage";
+    } else {
+      example = "Limited semantic keyword coverage";
+    }
+  }
+  
+  return {
+    score: Math.min(Math.max(score, 0), 100),
+    example
+  };
 }
 
-function analyzeContentFreshness(content: WebsiteContent): number {
+function analyzeContentFreshness(content: WebsiteContent): { score: number; example: string } {
   // Check for last modified header
   let lastModifiedDate: Date | null = null;
   
@@ -623,30 +646,38 @@ function analyzeContentFreshness(content: WebsiteContent): number {
   const dateMatches = content.text.match(dateRegex) || [];
   
   let contentDates: Date[] = [];
+  let contentDateStrings: string[] = [];
   
-  for (const match of dateMatches) {
+  for (let i = 0; i < dateMatches.length; i++) {
+    const match = dateMatches[i];
     try {
       const date = new Date(match);
       if (!isNaN(date.getTime())) {
         contentDates.push(date);
+        contentDateStrings.push(match);
       }
     } catch (e) {
       // Ignore invalid dates
     }
   }
   
-  // Sort dates in descending order
-  contentDates.sort((a, b) => b.getTime() - a.getTime());
+  // Sort dates in descending order (with their string representations)
+  const sortedDates = contentDates
+    .map((date, index) => ({ date, string: contentDateStrings[index] }))
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
   
   // Get the most recent date
   let mostRecentDate: Date | null = null;
+  let mostRecentDateString: string | null = null;
   
-  if (contentDates.length > 0) {
-    mostRecentDate = contentDates[0];
+  if (sortedDates.length > 0) {
+    mostRecentDate = sortedDates[0].date;
+    mostRecentDateString = sortedDates[0].string;
   }
   
   if (lastModifiedDate && (!mostRecentDate || lastModifiedDate > mostRecentDate)) {
     mostRecentDate = lastModifiedDate;
+    mostRecentDateString = lastModifiedDate.toDateString();
   }
   
   // Calculate score based on recency
@@ -680,11 +711,22 @@ function analyzeContentFreshness(content: WebsiteContent): number {
   // Check for time-based terms indicating freshness
   const freshnessTerms = ["new", "update", "recent", "latest", "current year", "now", "today"];
   let freshnessMatches = 0;
+  let freshnessMatchExamples: string[] = [];
   
   for (const term of freshnessTerms) {
     const regex = new RegExp(`\\b${term}\\b`, 'gi');
-    if (content.text.match(regex)) {
+    const matches = content.text.match(regex);
+    if (matches && matches.length > 0) {
       freshnessMatches++;
+      
+      // Try to get a short context around the term
+      const termIndex = content.text.toLowerCase().indexOf(term.toLowerCase());
+      if (termIndex >= 0) {
+        const start = Math.max(0, termIndex - 20);
+        const end = Math.min(content.text.length, termIndex + term.length + 30);
+        const context = content.text.substring(start, end).trim();
+        freshnessMatchExamples.push(`"${context}"`);
+      }
     }
   }
   
@@ -692,19 +734,68 @@ function analyzeContentFreshness(content: WebsiteContent): number {
   if (freshnessMatches >= 4) score += 10;
   else if (freshnessMatches >= 2) score += 5;
   
-  return Math.min(Math.max(score, 0), 100);
+  // Create example based on what was found
+  let example = "";
+  
+  if (mostRecentDateString) {
+    example = `Most recent date found: ${mostRecentDateString}`;
+    
+    if (content.lastModified) {
+      example += ` (from Last-Modified header)`;
+    }
+  } else if (freshnessMatchExamples.length > 0) {
+    example = `Freshness indicator: ${freshnessMatchExamples[0]}`;
+  } else {
+    example = "No clear date indicators found in content";
+  }
+  
+  return {
+    score: Math.min(Math.max(score, 0), 100),
+    example
+  };
 }
 
-function analyzeAuthoritySignals(content: WebsiteContent): number {
+function analyzeAuthoritySignals(content: WebsiteContent): { score: number; example: string } {
   // Check for author information
   const hasAuthorInfo = content.html.includes("author") || 
     content.html.includes("byline") || 
     content.schema.some(s => s["@type"] === "Person");
   
+  // Extract author info if available
+  let authorExample = "";
+  const authorRegex = /<[^>]*author[^>]*>(.*?)<\/[^>]*>/i;
+  const authorMatch = content.html.match(authorRegex);
+  if (authorMatch && authorMatch[1]) {
+    authorExample = authorMatch[1].replace(/<[^>]*>/g, '').trim();
+  } else if (content.schema.some(s => s["@type"] === "Person" && s.name)) {
+    const personSchema = content.schema.find(s => s["@type"] === "Person" && s.name);
+    if (personSchema) {
+      authorExample = `${personSchema.name}`;
+      if (personSchema.jobTitle) {
+        authorExample += `, ${personSchema.jobTitle}`;
+      }
+    }
+  }
+  
   // Check for citations and references
   const hasCitations = content.html.includes("cite") || 
     content.html.toLowerCase().includes("source:") || 
     content.html.toLowerCase().includes("reference:");
+  
+  // Try to extract a citation example
+  let citationExample = "";
+  const citeRegex = /<cite[^>]*>(.*?)<\/cite>/i;
+  const citeMatch = content.html.match(citeRegex);
+  if (citeMatch && citeMatch[1]) {
+    citationExample = citeMatch[1].replace(/<[^>]*>/g, '').trim();
+  } else {
+    // Look for "source:" or "reference:" patterns
+    const sourceRegex = /(?:source|reference):\s*([^.,\n]+)/i;
+    const sourceMatch = content.text.match(sourceRegex);
+    if (sourceMatch && sourceMatch[1]) {
+      citationExample = sourceMatch[1].trim();
+    }
+  }
   
   // Check for outbound links to authority sites
   const links = content.links;
@@ -714,11 +805,15 @@ function analyzeAuthoritySignals(content: WebsiteContent): number {
   ];
   
   let authorityLinks = 0;
+  let authorityLinkExample = "";
   
   for (const link of links) {
     for (const domain of authorityDomains) {
       if (link.includes(domain)) {
         authorityLinks++;
+        if (!authorityLinkExample) {
+          authorityLinkExample = link;
+        }
         break;
       }
     }
@@ -731,11 +826,16 @@ function analyzeAuthoritySignals(content: WebsiteContent): number {
   ];
   
   let expertiseMatches = 0;
+  let expertiseExample = "";
   
   for (const marker of expertiseMarkers) {
-    const regex = new RegExp(`\\b${marker}\\b`, 'gi');
-    if (content.text.match(regex)) {
+    const regex = new RegExp(`[^.]*\\b${marker}\\b[^.]*\.`, 'gi');
+    const matches = content.text.match(regex);
+    if (matches && matches.length > 0) {
       expertiseMatches++;
+      if (!expertiseExample) {
+        expertiseExample = matches[0].trim();
+      }
     }
   }
   
@@ -752,7 +852,25 @@ function analyzeAuthoritySignals(content: WebsiteContent): number {
   if (expertiseMatches >= 3) score += 10;
   else if (expertiseMatches >= 1) score += 5;
   
-  return Math.min(Math.max(score, 0), 100);
+  // Generate example based on findings
+  let example = "";
+  
+  if (authorExample) {
+    example = `Author: ${authorExample}`;
+  } else if (authorityLinkExample) {
+    example = `Authority link: ${authorityLinkExample}`;
+  } else if (citationExample) {
+    example = `Citation: ${citationExample}`;
+  } else if (expertiseExample) {
+    example = `Expertise indicator: "${expertiseExample}"`;
+  } else {
+    example = "No clear authority signals found";
+  }
+  
+  return {
+    score: Math.min(Math.max(score, 0), 100),
+    example
+  };
 }
 
 // Function to generate recommendations based on scores
@@ -1035,6 +1153,11 @@ function applyCompetitorComparison(
       
       // Update details to mention competitor comparison
       scores[i].details += ` Your competitor performs better in this area.`;
+      
+      // If there's example from competitor, make a note of it
+      if (competitorScores[i].example) {
+        scores[i].example = scores[i].example || "Competitor example: " + competitorScores[i].example;
+      }
     } 
     // If current site is better, be more positive
     else if (currentScore > competitorScore + 15) {
