@@ -81,14 +81,46 @@ export async function getContent(url: string): Promise<WebsiteContent> {
   }
 }
 
+// Interface for advanced analysis options
+interface AnalysisOptions {
+  competitorContent?: WebsiteContent | null;
+  industry?: string;
+  contentFocus?: string;
+  analysisDepth?: 'standard' | 'advanced';
+}
+
 // Function to analyze website content with Llama 3.3
-export async function analyzeWebsite(content: WebsiteContent): Promise<AnalysisResult> {
+export async function analyzeWebsite(
+  content: WebsiteContent, 
+  options: AnalysisOptions = {}
+): Promise<AnalysisResult> {
   try {
     // For now we'll simulate the Llama 3.3 analysis with a scoring algorithm
     // In a production environment, this would call the actual Llama 3.3 API
+    const { competitorContent, industry, contentFocus, analysisDepth = 'standard' } = options;
     
-    // Calculate scores for each criterion
+    // Calculate scores for each criterion, adjusting based on options
     const scores: ScoreBreakdown[] = analyzeContent(content);
+    
+    // Apply industry-specific adjustments if provided
+    if (industry) {
+      applyIndustrySpecificAdjustments(scores, industry);
+    }
+    
+    // Apply content focus adjustments if provided
+    if (contentFocus) {
+      applyContentFocusAdjustments(scores, contentFocus);
+    }
+    
+    // Apply deeper analysis if advanced mode
+    if (analysisDepth === 'advanced') {
+      applyAdvancedAnalysis(scores, content);
+    }
+    
+    // Compare with competitor if provided
+    if (competitorContent) {
+      applyCompetitorComparison(scores, content, competitorContent);
+    }
     
     // Calculate overall score
     const overallScore = calculateWeightedScore(scores);
@@ -696,7 +728,163 @@ function generateRecommendations(scores: ScoreBreakdown[], content: WebsiteConte
   return recommendations;
 }
 
-// Function to generate summary based on overall score
+// Helper function for industry-specific adjustments
+function applyIndustrySpecificAdjustments(scores: ScoreBreakdown[], industry: string): void {
+  // Different industries have different AEO priorities
+  switch(industry.toLowerCase()) {
+    case 'e-commerce':
+      // E-commerce sites need better structured data and semantic markup
+      adjustScoreForFactor(scores, 'Structured Data', 10);
+      adjustScoreForFactor(scores, 'Semantic Keywords', 5);
+      break;
+      
+    case 'healthcare':
+      // Healthcare sites need authority signals and content clarity
+      adjustScoreForFactor(scores, 'Authority Signals', 15);
+      adjustScoreForFactor(scores, 'Content Clarity', 10);
+      break;
+      
+    case 'finance':
+      // Finance sites need freshness and authority
+      adjustScoreForFactor(scores, 'Content Freshness', 15);
+      adjustScoreForFactor(scores, 'Authority Signals', 10);
+      break;
+      
+    case 'education':
+      // Education sites need question-based content and clarity
+      adjustScoreForFactor(scores, 'Question-Based Content', 15);
+      adjustScoreForFactor(scores, 'Content Clarity', 10);
+      break;
+      
+    case 'technology':
+      // Tech sites need freshness and semantic richness
+      adjustScoreForFactor(scores, 'Content Freshness', 10);
+      adjustScoreForFactor(scores, 'Semantic Keywords', 10);
+      break;
+      
+    // Add more industries as needed
+  }
+}
+
+// Helper function for content focus adjustments
+function applyContentFocusAdjustments(scores: ScoreBreakdown[], contentFocus: string): void {
+  switch(contentFocus.toLowerCase()) {
+    case 'educational':
+      // Educational content needs question-based structure and clarity
+      adjustScoreForFactor(scores, 'Question-Based Content', 15);
+      adjustScoreForFactor(scores, 'Content Clarity', 10);
+      break;
+      
+    case 'informational':
+      // Informational content needs semantic richness and authority
+      adjustScoreForFactor(scores, 'Semantic Keywords', 10);
+      adjustScoreForFactor(scores, 'Authority Signals', 10);
+      break;
+      
+    case 'transactional':
+      // Transactional content needs structured data and freshness
+      adjustScoreForFactor(scores, 'Structured Data', 15);
+      adjustScoreForFactor(scores, 'Content Freshness', 10);
+      break;
+      
+    case 'news':
+      // News content needs freshness and authority
+      adjustScoreForFactor(scores, 'Content Freshness', 20);
+      adjustScoreForFactor(scores, 'Authority Signals', 15);
+      break;
+      
+    case 'how-to':
+      // How-to content needs clarity and question-based structure
+      adjustScoreForFactor(scores, 'Content Clarity', 15);
+      adjustScoreForFactor(scores, 'Question-Based Content', 10);
+      break;
+      
+    // Add more content types as needed
+  }
+}
+
+// Helper function for advanced analysis
+function applyAdvancedAnalysis(scores: ScoreBreakdown[], content: WebsiteContent): void {
+  // Advanced analysis performs deeper checks and has higher standards
+  
+  // Check for well-formed headings hierarchy (H1 -> H2 -> H3)
+  if (content.headers.h1.length === 1 && content.headers.h2.length > 1) {
+    // Good heading hierarchy
+    adjustScoreForFactor(scores, 'Content Clarity', 5);
+  }
+  
+  // Check for image alt text
+  const imgAltRegex = /<img[^>]*alt="([^"]*)"[^>]*>/g;
+  const imgTags = content.html.match(/<img[^>]*>/g) || [];
+  const imgWithAlt = content.html.match(imgAltRegex) || [];
+  
+  if (imgTags.length > 0 && imgWithAlt.length / imgTags.length > 0.8) {
+    // Most images have alt text
+    adjustScoreForFactor(scores, 'Content Clarity', 5);
+  }
+  
+  // Check for external links to authority sites
+  const authorityDomains = [
+    "wikipedia.org", "gov", "edu", "harvard", "stanford", "mit",
+    "bbc", "nytimes", "reuters", "bloomberg", "wsj", "economist"
+  ];
+  
+  let authorityLinks = 0;
+  for (const link of content.links) {
+    for (const domain of authorityDomains) {
+      if (link.includes(domain)) {
+        authorityLinks++;
+        break;
+      }
+    }
+  }
+  
+  if (authorityLinks >= 3) {
+    adjustScoreForFactor(scores, 'Authority Signals', 10);
+  }
+}
+
+// Helper function for competitor comparison
+function applyCompetitorComparison(
+  scores: ScoreBreakdown[], 
+  content: WebsiteContent, 
+  competitorContent: WebsiteContent
+): void {
+  // Compare current site to competitor site
+  const competitorScores = analyzeContent(competitorContent);
+  
+  // Adjust scores based on comparison
+  for (let i = 0; i < scores.length; i++) {
+    const currentScore = scores[i].score;
+    const competitorScore = competitorScores[i].score;
+    
+    // If competitor is better in this area, be more critical
+    if (competitorScore > currentScore + 15) {
+      // Competitor is significantly better, reduce score a bit more
+      adjustScoreForFactor(scores, scores[i].factor, -5);
+      
+      // Update details to mention competitor comparison
+      scores[i].details += ` Your competitor performs better in this area.`;
+    } 
+    // If current site is better, be more positive
+    else if (currentScore > competitorScore + 15) {
+      // Current site is significantly better, increase score a bit
+      adjustScoreForFactor(scores, scores[i].factor, 5);
+      
+      // Update details to mention competitor comparison
+      scores[i].details += ` You outperform your competitor in this area.`;
+    }
+  }
+}
+
+// Helper function to adjust score for a specific factor
+function adjustScoreForFactor(scores: ScoreBreakdown[], factorName: string, adjustment: number): void {
+  const factor = scores.find(s => s.factor === factorName);
+  if (factor) {
+    factor.score = Math.min(Math.max(factor.score + adjustment, 0), 100);
+  }
+}
+
 function generateSummary(score: number, categorySummary: AnalysisScoreSummary[], recommendations: Recommendation[]): string {
   let summaryText = "";
   
