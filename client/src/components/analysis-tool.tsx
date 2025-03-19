@@ -4,6 +4,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { LoadingStep } from "@/components/loading-step";
 import { ScoreCircle } from "@/components/score-circle";
 import { RecommendationCard } from "@/components/recommendation-card";
+import { AILoadingAnimation } from "@/components/ai-loading-animation";
+import { AnalysisSkeleton } from "@/components/analysis-skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -402,11 +404,18 @@ export function AnalysisTool() {
                 ></div>
               </div>
               
-              {/* Loading Animation */}
+              {/* AI Enhanced Loading Animation */}
               <div className="relative">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8 relative">
-                  {/* Connecting line container */}
-                  <div className="hidden sm:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10"></div>
+                  {/* Connecting line container - Neural pathways between steps */}
+                  <div className="hidden sm:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10 overflow-hidden">
+                    {/* Data flow animation for active processing */}
+                    <div className="absolute inset-0 animate-data-flow bg-gradient-to-r from-transparent via-primary/30 to-transparent"
+                         style={{ 
+                           width: `${progress}%`, 
+                           backgroundSize: "200% 100%" 
+                         }}></div>
+                  </div>
                   
                   <LoadingStep
                     icon="search"
@@ -417,7 +426,7 @@ export function AnalysisTool() {
                   />
                   
                   <LoadingStep
-                    icon="robot"
+                    icon="brain"
                     title="AI Analysis"
                     step={2}
                     isActive={currentStep === AnalysisStep.Analyzing}
@@ -433,7 +442,7 @@ export function AnalysisTool() {
                   />
                   
                   <LoadingStep
-                    icon="clipboard-list"
+                    icon="code"
                     title="Generating Insights"
                     step={4}
                     isActive={currentStep === AnalysisStep.Generating}
@@ -442,36 +451,127 @@ export function AnalysisTool() {
                 </div>
               </div>
               
-              <div className="text-center bg-slate-50 p-4 rounded-lg border border-slate-200 mt-4">
-                <div className="text-lg font-medium mb-1">
-                  {currentStep === AnalysisStep.Crawling && "Crawling website content..."}
-                  {currentStep === AnalysisStep.Analyzing && "Analyzing content with Llama 3.3..."}
-                  {currentStep === AnalysisStep.Calculating && "Calculating AEO score..."}
-                  {currentStep === AnalysisStep.Generating && "Generating optimization insights..."}
+              {/* AI Brain Visualization with Neural Network */}
+              <div className="mb-8">
+                <AILoadingAnimation 
+                  step={
+                    currentStep === AnalysisStep.Idle ? 0 :
+                    currentStep === AnalysisStep.Crawling ? 1 :
+                    currentStep === AnalysisStep.Analyzing ? 2 :
+                    currentStep === AnalysisStep.Calculating ? 3 : 4
+                  }
+                  subStep={currentSubStep}
+                  progress={progress}
+                />
+              </div>
+              
+              {/* Result Skeleton Preview */}
+              <div className="mb-8 opacity-50 transition-opacity duration-500" style={{ opacity: progress > 50 ? 0.7 : 0.3 }}>
+                <AnalysisSkeleton />
+              </div>
+              
+              {/* Current Process Information */}
+              <div className="text-center bg-slate-50 p-4 rounded-lg border border-slate-200 relative overflow-hidden">
+                {/* Background neural pattern */}
+                <div className="absolute inset-0 opacity-5">
+                  <svg
+                    className="w-full h-full"
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10,30 Q50,10 90,30 T10,60 T90,90"
+                      stroke="#6366F1"
+                      strokeWidth="0.5"
+                      fill="none"
+                      className="animate-path-trace"
+                    />
+                    <path
+                      d="M10,10 Q50,50 90,10 T10,50 T90,90"
+                      stroke="#6366F1"
+                      strokeWidth="0.5" 
+                      fill="none"
+                      className="animate-path-trace"
+                      style={{ animationDelay: "1s" }}
+                    />
+                  </svg>
                 </div>
                 
-                {/* Detailed sub-step progress */}
+                {/* Process title with enhanced styling */}
+                <div className="text-lg font-medium mb-1 relative">
+                  <span className="relative inline-block">
+                    {currentStep === AnalysisStep.Crawling && (
+                      <>
+                        <span className="absolute -inset-1 bg-primary/5 rounded-lg blur-sm"></span>
+                        <span className="relative">Crawling website content...</span>
+                      </>
+                    )}
+                    {currentStep === AnalysisStep.Analyzing && (
+                      <>
+                        <span className="absolute -inset-1 bg-primary/5 rounded-lg blur-sm"></span>
+                        <span className="relative">Analyzing content with Llama 3.3...</span>
+                      </>
+                    )}
+                    {currentStep === AnalysisStep.Calculating && (
+                      <>
+                        <span className="absolute -inset-1 bg-primary/5 rounded-lg blur-sm"></span>
+                        <span className="relative">Calculating AEO score...</span>
+                      </>
+                    )}
+                    {currentStep === AnalysisStep.Generating && (
+                      <>
+                        <span className="absolute -inset-1 bg-primary/5 rounded-lg blur-sm"></span>
+                        <span className="relative">Generating optimization insights...</span>
+                      </>
+                    )}
+                  </span>
+                </div>
+                
+                {/* Detailed sub-step progress with enhanced visuals */}
                 <div className="relative">
-                  <div className="flex justify-center items-center">
-                    <div className="h-1.5 w-20 bg-slate-200 rounded-full my-2 overflow-hidden">
+                  {/* Sub-step progress indicators */}
+                  <div className="flex justify-center items-center gap-1 my-2">
+                    {[0, 1, 2, 3, 4].map((idx) => (
                       <div 
-                        className="h-full bg-primary transition-all duration-300 ease-out rounded-full"
-                        style={{ width: `${(currentSubStep + 1) * 20}%` }}
+                        key={idx}
+                        className={`h-1.5 w-4 rounded-full transition-all duration-300 ${
+                          idx <= currentSubStep 
+                            ? "bg-primary" 
+                            : "bg-slate-200"
+                        } ${
+                          idx === currentSubStep 
+                            ? "animate-pulse w-6" 
+                            : ""
+                        }`}
                       ></div>
-                    </div>
+                    ))}
                   </div>
+                  
+                  {/* Current sub-step text with processing indicator */}
                   <p className="text-slate-600 mt-1 min-h-[1.5rem] transition-all duration-300">
-                    {currentSubStepText}
+                    <span className="inline-flex items-center">
+                      {currentSubStepText}
+                      <span className="inline-flex ml-1">
+                        <span className="animate-pulse" style={{ animationDelay: "0s" }}>.</span>
+                        <span className="animate-pulse" style={{ animationDelay: "0.3s" }}>.</span>
+                        <span className="animate-pulse" style={{ animationDelay: "0.6s" }}>.</span>
+                      </span>
+                    </span>
                   </p>
                 </div>
                 
                 <div className="mt-3 text-primary text-sm animate-pulse">
-                  Expected completion in {Math.max(8 - Math.floor(progress / 12.5), 1)} seconds
+                  <span className="inline-flex items-center">
+                    <span className="w-3 h-3 rounded-full bg-primary/30 mr-2 animate-neural-pulse"></span>
+                    Expected completion in {Math.max(8 - Math.floor(progress / 12.5), 1)} seconds
+                  </span>
                 </div>
                 
                 {/* Precise progress percentage */}
                 <div className="mt-2 text-xs text-slate-500">
-                  {progress}% complete
+                  <span className="bg-primary/5 px-2 py-0.5 rounded-md text-primary font-medium">
+                    {progress}% complete
+                  </span>
                 </div>
               </div>
             </div>
