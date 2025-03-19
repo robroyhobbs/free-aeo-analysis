@@ -896,9 +896,6 @@ export function AnalysisTool() {
                           Score
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          Weight
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                           Details
                         </th>
                       </tr>
@@ -941,25 +938,14 @@ export function AnalysisTool() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div 
-                              className="text-sm text-slate-600 font-medium" 
-                              style={{ 
-                                opacity: 0, 
-                                animation: 'score-reveal 0.6s ease forwards',
-                                animationDelay: `${index * 120 + 200}ms` 
-                              }}
-                            >
-                              {(factor.weight * 100).toFixed(0)}%
-                            </div>
-                          </td>
+
                           <td className="px-6 py-4">
                             <div 
                               className="text-sm text-slate-600"
                               style={{ 
                                 opacity: 0, 
                                 animation: 'score-reveal 0.6s ease forwards',
-                                animationDelay: `${index * 120 + 400}ms` 
+                                animationDelay: `${index * 120 + 200}ms` 
                               }}
                             >
                               <div>{factor.details}</div>
