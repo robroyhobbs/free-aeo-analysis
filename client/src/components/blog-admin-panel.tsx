@@ -23,7 +23,16 @@ export function BlogAdminPanel() {
       setIsGenerating(true);
       setResult(null);
       
-      const response = await apiRequest('POST', '/api/admin/generate-blog');
+      const response = await fetch('/api/admin/generate-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json() as BlogGenerationResponse;
       
       setResult({
