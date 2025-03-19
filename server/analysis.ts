@@ -761,7 +761,7 @@ function analyzeContentFreshness(content: WebsiteContent): AnalysisFunctionResul
   };
 }
 
-function analyzeAuthoritySignals(content: WebsiteContent): { score: number; example: string } {
+function analyzeAuthoritySignals(content: WebsiteContent): AnalysisFunctionResult {
   // Check for author information
   const hasAuthorInfo = content.html.includes("author") || 
     content.html.includes("byline") || 
