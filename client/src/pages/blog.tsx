@@ -29,14 +29,14 @@ export default function BlogPage() {
         <div className="bg-white rounded-xl shadow-xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
             <div 
-              className="h-64 lg:h-full bg-gradient-to-br from-primary/10 to-indigo-100/80 relative overflow-hidden"
+              className="h-64 lg:h-full bg-gradient-to-br from-primary/10 to-indigo-100/80 relative overflow-hidden group"
               style={{
                 backgroundImage: `url(${featuredPost.coverImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/80 to-indigo-600/40 opacity-70"></div>
+              <div className="absolute inset-0 bg-gradient-to-tr from-primary/80 to-indigo-600/40 opacity-70 group-hover:opacity-60 transition-opacity duration-300"></div>
             </div>
             <div className="p-8 lg:p-10 flex flex-col justify-between">
               <div>
@@ -62,8 +62,8 @@ export default function BlogPage() {
               
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                    <UserIcon className="h-5 w-5 text-slate-500" />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-indigo-100 flex items-center justify-center">
+                    <UserIcon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <p className="font-medium text-sm">{featuredPost.author.name}</p>
@@ -98,15 +98,16 @@ function BlogPostCard({ post }: { post: typeof blogPosts[0] }) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-lg transition-shadow">
       <div 
-        className="h-48 bg-slate-200 relative"
+        className="h-48 bg-slate-200 relative overflow-hidden"
         style={{
           backgroundImage: `url(${post.coverImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
       >
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-60 hover:opacity-40 transition-opacity"></div>
         <Badge 
-          className="absolute top-4 left-4"
+          className="absolute top-4 left-4 z-10"
           variant="secondary"
         >
           {post.category}
@@ -138,8 +139,8 @@ function BlogPostCard({ post }: { post: typeof blogPosts[0] }) {
         
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-              <UserIcon className="h-4 w-4 text-slate-500" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-indigo-100 flex items-center justify-center">
+              <UserIcon className="h-4 w-4 text-primary" />
             </div>
             <span className="text-sm font-medium">{post.author.name}</span>
           </div>

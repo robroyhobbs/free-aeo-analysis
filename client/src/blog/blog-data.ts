@@ -29,13 +29,13 @@ export const blogPosts: BlogPost[] = [
     author: {
       name: "Sarah Johnson",
       title: "AI Content Strategist",
-      avatar: "/avatars/sarah.jpg"
+      avatar: ""
     },
     publishedAt: "2024-03-15T09:00:00.000Z",
     readTime: 8,
     category: "Content Strategy",
     tags: ["AEO", "Content Strategy", "AI", "Digital Marketing"],
-    coverImage: "/blog/aeo-frontier.jpg",
+    coverImage: "https://images.unsplash.com/photo-1677442135968-6052d5a4aecd?q=80&w=1932&auto=format&fit=crop",
     featured: true
   },
   {
@@ -47,13 +47,13 @@ export const blogPosts: BlogPost[] = [
     author: {
       name: "Michael Torres",
       title: "SEO Director",
-      avatar: "/avatars/michael.jpg"
+      avatar: ""
     },
     publishedAt: "2024-03-10T10:30:00.000Z",
     readTime: 10,
     category: "Content Strategy",
     tags: ["AEO", "Question-Based Content", "Content Structure"],
-    coverImage: "/blog/question-based-content.jpg",
+    coverImage: "https://images.unsplash.com/photo-1631603090989-93f9ef6f9d80?q=80&w=1972&auto=format&fit=crop",
     featured: false
   },
   {
@@ -65,13 +65,13 @@ export const blogPosts: BlogPost[] = [
     author: {
       name: "Jennifer Lee",
       title: "Data Analytics Lead",
-      avatar: "/avatars/jennifer.jpg"
+      avatar: ""
     },
     publishedAt: "2024-03-05T11:45:00.000Z",
     readTime: 12,
     category: "Analytics",
     tags: ["AEO", "Analytics", "Metrics", "KPIs"],
-    coverImage: "/blog/aeo-metrics.jpg",
+    coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop",
     featured: false
   },
   {
@@ -83,13 +83,13 @@ export const blogPosts: BlogPost[] = [
     author: {
       name: "David Chen",
       title: "Digital Marketing Strategist",
-      avatar: "/avatars/david.jpg"
+      avatar: ""
     },
     publishedAt: "2024-02-28T14:20:00.000Z",
     readTime: 11,
     category: "Strategy",
     tags: ["AEO", "SEO", "Content Strategy", "Digital Marketing"],
-    coverImage: "/blog/aeo-vs-seo.jpg",
+    coverImage: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=2074&auto=format&fit=crop",
     featured: false
   }
 ];

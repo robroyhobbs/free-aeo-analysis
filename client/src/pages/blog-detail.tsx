@@ -65,8 +65,8 @@ export default function BlogDetailPage() {
         
         <div className="flex flex-wrap gap-4 mb-8">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-              <UserIcon className="h-5 w-5 text-slate-500" />
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-indigo-100 flex items-center justify-center">
+              <UserIcon className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="font-medium text-sm">{post.author.name}</p>
@@ -88,13 +88,15 @@ export default function BlogDetailPage() {
         
         {/* Featured image */}
         <div 
-          className="w-full h-64 md:h-96 rounded-xl bg-slate-200 overflow-hidden mb-12"
+          className="w-full h-64 md:h-96 rounded-xl bg-slate-200 overflow-hidden mb-12 relative"
           style={{
             backgroundImage: `url(${post.coverImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
-        />
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-50"></div>
+        </div>
       </div>
       
       {/* Content layout */}
@@ -144,8 +146,8 @@ export default function BlogDetailPage() {
             <Card className="p-6 mb-8">
               <h3 className="font-medium mb-4">About the Author</h3>
               <div className="flex gap-4 items-center mb-4">
-                <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center">
-                  <UserIcon className="h-8 w-8 text-slate-500" />
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-indigo-100 flex items-center justify-center">
+                  <UserIcon className="h-8 w-8 text-primary" />
                 </div>
                 <div>
                   <p className="font-medium">{post.author.name}</p>
@@ -168,13 +170,15 @@ export default function BlogDetailPage() {
                   {relatedPosts.map(related => (
                     <div key={related.id} className="flex gap-3">
                       <div 
-                        className="w-16 h-16 rounded bg-slate-200 flex-shrink-0"
+                        className="w-16 h-16 rounded bg-slate-200 flex-shrink-0 relative"
                         style={{
                           backgroundImage: `url(${related.coverImage})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center'
                         }}
-                      />
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-40"></div>
+                      </div>
                       <div>
                         <h4 className="text-sm font-medium hover:text-primary transition-colors">
                           <Link href={`/blog/${related.slug}`}>
