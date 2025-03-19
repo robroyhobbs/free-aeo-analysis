@@ -161,92 +161,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = dirname(__filename);
       
-      // Path to the generator script
-      const generatorPath = join(__dirname, '../scripts/generate-blog-post.js');
+      // Path to the static blog post script
+      const staticBlogPath = join(__dirname, '../scripts/add-static-blog-post.js');
       
-      console.log(`[Admin] Starting blog post generation using script: ${generatorPath}`);
+      console.log(`[Admin] Using static blog post script: ${staticBlogPath}`);
       
       // Make sure the script exists before trying to execute it
-      if (!existsSync(generatorPath)) {
-        throw new Error(`Blog post generator script not found at path: ${generatorPath}`);
+      if (!existsSync(staticBlogPath)) {
+        throw new Error(`Static blog post script not found at path: ${staticBlogPath}`);
       }
       
-      // Execute the script as a child process with a timeout
-      const process = spawn('node', [generatorPath, '--now'], {
-        stdio: ['ignore', 'pipe', 'pipe']
-      });
-      
-      let output = '';
-      let errorOutput = '';
-      
-      process.stdout.on('data', (data) => {
-        const chunk = data.toString();
-        output += chunk;
-        console.log(`[Blog Generator] ${chunk.trim()}`);
-      });
-      
-      process.stderr.on('data', (data) => {
-        const chunk = data.toString();
-        errorOutput += chunk;
-        console.error(`[Blog Generator Error] ${chunk.trim()}`);
-      });
-      
-      // Set a timeout for the process
-      const timeout = setTimeout(() => {
-        if (!process.killed) {
-          process.kill();
-          console.error('[Admin] Blog generation process timed out after 30 seconds');
-        }
-      }, 30000);
-      
-      // Handle process completion
-      process.on('close', (code) => {
-        clearTimeout(timeout);
+      // Import and execute the static blog post function
+      try {
+        const { addStaticBlogPost } = await import(staticBlogPath);
+        const result = await addStaticBlogPost();
         
-        console.log(`[Admin] Blog generation process completed with code: ${code}`);
+        console.log('[Admin] Static blog post result:', result);
         
-        if (code === 0) {
-          // Check if the output indicates success
-          if (output.includes('Blog data file updated successfully')) {
-            return res.json({
-              success: true,
-              message: 'Blog post generated successfully',
-              output: output
-            });
-          } else {
-            // Process exited with code 0 but may not have updated the file
-            return res.status(500).json({
-              success: false,
-              message: 'Blog post generation completed but may not have updated the file',
-              output: output,
-              error: errorOutput || 'No specific error detected'
-            });
-          }
+        if (result.success) {
+          return res.json({
+            success: true,
+            message: 'Blog post added successfully',
+            output: result.output || 'Blog post added with static content'
+          });
         } else {
           return res.status(500).json({
             success: false,
-            message: `Failed to generate blog post (exit code: ${code})`,
-            error: errorOutput || 'No error output captured'
+            message: result.message || 'Failed to add static blog post',
+            error: result.error || 'Unknown error'
           });
         }
-      });
-      
-      // Handle unexpected errors
-      process.on('error', (err) => {
-        clearTimeout(timeout);
-        console.error('[Admin] Error spawning blog generation process:', err);
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to start blog post generation process',
-          error: err.message
+      } catch (importError) {
+        console.error('[Admin] Error importing or executing static blog post script:', importError);
+        
+        // Fallback to executing as a process if import fails
+        const process = spawn('node', [staticBlogPath], {
+          stdio: ['ignore', 'pipe', 'pipe']
         });
-      });
+        
+        let output = '';
+        let errorOutput = '';
+        
+        process.stdout.on('data', (data) => {
+          const chunk = data.toString();
+          output += chunk;
+          console.log(`[Blog Generator] ${chunk.trim()}`);
+        });
+        
+        process.stderr.on('data', (data) => {
+          const chunk = data.toString();
+          errorOutput += chunk;
+          console.error(`[Blog Generator Error] ${chunk.trim()}`);
+        });
+        
+        // Set a timeout for the process
+        const timeout = setTimeout(() => {
+          if (!process.killed) {
+            process.kill();
+            console.error('[Admin] Blog generation process timed out after 30 seconds');
+          }
+        }, 30000);
+        
+        // Handle process completion
+        process.on('close', (code) => {
+          clearTimeout(timeout);
+          
+          if (code === 0 && output.includes('success":true')) {
+            return res.json({
+              success: true,
+              message: 'Blog post added successfully (via process)',
+              output: output
+            });
+          } else {
+            return res.status(500).json({
+              success: false,
+              message: 'Failed to add static blog post (via process)',
+              error: errorOutput || 'Process exit code: ' + code
+            });
+          }
+        });
+        
+        // Handle unexpected errors
+        process.on('error', (err) => {
+          clearTimeout(timeout);
+          console.error('[Admin] Error spawning blog process:', err);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to start blog post process',
+            error: err.message
+          });
+        });
+      }
     } catch (error: any) {
       const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
-      console.error("[Admin] Error generating blog post:", errorMessage);
-      return res.status(500).json({ 
+      console.error("[Admin] Error adding blog post:", errorMessage);
+      return res.status(500).json({
         success: false,
-        message: "Failed to generate blog post",
+        message: "Failed to add blog post",
         error: errorMessage
       });
     }
