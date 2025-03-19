@@ -8,6 +8,9 @@ import { AILoadingAnimation } from "@/components/ai-loading-animation";
 import { AnalysisSkeleton } from "@/components/analysis-skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getHostnameFromUrl } from "@/lib/utils";
@@ -435,6 +438,137 @@ export function AnalysisTool() {
                   Analyze Now
                 </Button>
               </div>
+              
+              {/* Advanced Options Toggle */}
+              <div className="mt-4 flex items-center justify-center">
+                <Button 
+                  variant="ghost" 
+                  className="text-sm flex items-center gap-1 text-slate-600 hover:text-primary transition-colors"
+                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                >
+                  {showAdvancedOptions ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      Hide Advanced Options
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      Show Advanced Options
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              {/* Advanced Options Panel */}
+              {showAdvancedOptions && (
+                <div className="mt-4 border border-slate-200 rounded-lg p-4 bg-slate-50 animate-in slide-in-from-top duration-300">
+                  <h3 className="text-sm font-medium mb-3 text-slate-700">Advanced Analysis Options</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Competitor URL */}
+                    <div>
+                      <Label htmlFor="competitor-url" className="text-xs mb-1.5 text-slate-600">
+                        Competitor URL (optional)
+                      </Label>
+                      <Input
+                        id="competitor-url"
+                        type="url"
+                        placeholder="https://competitor.com"
+                        value={competitorUrl}
+                        onChange={(e) => validateCompetitorUrl(e.target.value)}
+                        className="w-full text-sm"
+                      />
+                      {competitorUrlError && (
+                        <div className="text-red-500 text-xs mt-1">{competitorUrlError}</div>
+                      )}
+                      <p className="text-xs text-slate-500 mt-1">
+                        Compare your content against a competing website
+                      </p>
+                    </div>
+                    
+                    {/* Industry Selection */}
+                    <div>
+                      <Label htmlFor="industry" className="text-xs mb-1.5 text-slate-600">
+                        Industry (optional)
+                      </Label>
+                      <Select value={industry} onValueChange={setIndustry}>
+                        <SelectTrigger id="industry" className="w-full text-sm">
+                          <SelectValue placeholder="Select your industry" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">No specific industry</SelectItem>
+                          <SelectItem value="education">Education</SelectItem>
+                          <SelectItem value="ecommerce">E-commerce</SelectItem>
+                          <SelectItem value="finance">Finance</SelectItem>
+                          <SelectItem value="healthcare">Healthcare</SelectItem>
+                          <SelectItem value="technology">Technology</SelectItem>
+                          <SelectItem value="travel">Travel</SelectItem>
+                          <SelectItem value="media">Media & Publishing</SelectItem>
+                          <SelectItem value="legal">Legal</SelectItem>
+                          <SelectItem value="realestate">Real Estate</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Get industry-specific recommendations
+                      </p>
+                    </div>
+                    
+                    {/* Content Focus */}
+                    <div>
+                      <Label htmlFor="content-focus" className="text-xs mb-1.5 text-slate-600">
+                        Content Focus (optional)
+                      </Label>
+                      <Select value={contentFocus} onValueChange={setContentFocus}>
+                        <SelectTrigger id="content-focus" className="w-full text-sm">
+                          <SelectValue placeholder="Select content focus" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">General content</SelectItem>
+                          <SelectItem value="question_focused">Question-focused</SelectItem>
+                          <SelectItem value="educational">Educational</SelectItem>
+                          <SelectItem value="product">Product/Service</SelectItem>
+                          <SelectItem value="news">News/Updates</SelectItem>
+                          <SelectItem value="howto">How-to Guides</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Tailor analysis to your content type
+                      </p>
+                    </div>
+                    
+                    {/* Analysis Depth */}
+                    <div>
+                      <Label htmlFor="analysis-depth" className="text-xs mb-1.5 text-slate-600">
+                        Analysis Depth
+                      </Label>
+                      <div className="flex gap-2">
+                        <Button 
+                          type="button"
+                          variant={analysisDepth === "standard" ? "default" : "outline"}
+                          size="sm"
+                          className={analysisDepth === "standard" ? "gradient-bg text-white" : ""}
+                          onClick={() => setAnalysisDepth("standard")}
+                        >
+                          Standard
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant={analysisDepth === "advanced" ? "default" : "outline"}
+                          size="sm"
+                          className={analysisDepth === "advanced" ? "gradient-bg text-white" : ""}
+                          onClick={() => setAnalysisDepth("advanced")}
+                        >
+                          Advanced
+                        </Button>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Advanced analysis includes more detailed scoring factors
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               <div className="mt-4 text-center text-sm text-slate-500">
                 <p>Powered by Llama 3.3 - Analysis takes just a few seconds</p>
