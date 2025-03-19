@@ -95,14 +95,14 @@ interface AnalysisOptions {
   analysisDepth?: 'standard' | 'advanced';
 }
 
-// Function to analyze website content with Llama 3.3
+// Function to analyze website content with our expert AI system
 export async function analyzeWebsite(
   content: WebsiteContent, 
   options: AnalysisOptions = {}
 ): Promise<AnalysisResult> {
   try {
-    // For now we'll simulate the Llama 3.3 analysis with a scoring algorithm
-    // In a production environment, this would call the actual Llama 3.3 API
+    // For now we'll simulate the expert analysis with a scoring algorithm
+    // In a production environment, this would call the advanced AI API
     const { competitorContent, industry, contentFocus, analysisDepth = 'standard' } = options;
     
     // Calculate scores for each criterion, adjusting based on options
@@ -1205,9 +1205,9 @@ function generateSummary(score: number, categorySummary: AnalysisScoreSummary[],
   const criticalRecs = recommendations.filter(r => r.type === RecommendationType.Critical);
   
   if (criticalRecs.length > 0) {
-    summaryText += `Our analysis with Llama 3.3 identified ${criticalRecs.length} critical issues that need immediate attention.`;
+    summaryText += `Our expert analysis identified ${criticalRecs.length} critical issues that need immediate attention.`;
   } else {
-    summaryText += `Our analysis with Llama 3.3 identified several key areas where you can enhance your AEO performance.`;
+    summaryText += `Our expert analysis identified several key areas where you can enhance your AEO performance.`;
   }
   
   return summaryText;

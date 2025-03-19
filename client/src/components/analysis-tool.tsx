@@ -571,7 +571,7 @@ export function AnalysisTool() {
               )}
               
               <div className="mt-4 text-center text-sm text-slate-500">
-                <p>Powered by Llama 3.3 - Analysis takes just a few seconds</p>
+                <p>Powered by 20 years of expertise and AI - your personal analysis is just seconds away</p>
               </div>
             </div>
           </CardContent>
@@ -706,7 +706,7 @@ export function AnalysisTool() {
                     {currentStep === AnalysisStep.Analyzing && (
                       <>
                         <span className="absolute -inset-1 bg-primary/5 rounded-lg blur-sm"></span>
-                        <span className="relative">Analyzing content with Llama 3.3...</span>
+                        <span className="relative">Analyzing content with our expert AI system...</span>
                       </>
                     )}
                     {currentStep === AnalysisStep.Calculating && (
