@@ -1,7 +1,12 @@
 // Script to generate a new blog post using the provided topics
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+
+// Get the directory name properly in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Blog topics data from the provided list
 const blogTopics = [
@@ -72,14 +77,14 @@ const blogTopics = [
   {
     title: "The Role of Content Freshness in AEO: Why Updates Matter",
     focus: "Discuss how AI favors current content and how to keep your site relevant.",
-    angle: "Share a checklist for refreshing old posts (e.g., "Updated March 2025").",
+    angle: "Share a checklist for refreshing old posts (e.g., 'Updated March 2025').",
     opportunity: "Encourage ongoing content maintenance.",
     category: "Content Strategy",
     tags: ["AEO", "Content Freshness", "Content Updates", "Relevance"]
   },
   {
     title: "AEO for Local Businesses: Dominating 'Near Me' Queries",
-    focus: "Explore how local sites can use AEO for queries like "Where's the best coffee shop near me?"",
+    focus: "Explore how local sites can use AEO for queries like near me searches.",
     angle: "Tie in Google Business Profile and localized FAQs.",
     opportunity: "Target small business owners seeking growth.",
     category: "Local SEO",
@@ -317,12 +322,10 @@ function updateBlogDataFile(newPost) {
   }
 }
 
-// Execute the main function if this script is run directly
-if (require.main === module) {
+// Execute the main function if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
   generateBlogPost();
 }
 
 // Export for use in other scripts
-module.exports = {
-  generateBlogPost
-};
+export { generateBlogPost };

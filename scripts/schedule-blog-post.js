@@ -1,10 +1,15 @@
 // Script to schedule daily blog post generation
 // This would typically be set up as a cron job on your server
 
-const cron = require('node-cron');
-const { generateBlogPost } = require('./generate-blog-post');
-const fs = require('fs');
-const path = require('path');
+import cron from 'node-cron';
+import { generateBlogPost } from './generate-blog-post.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory name properly in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Function to log the blog generation activity
 function logActivity(message) {
