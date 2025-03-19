@@ -175,10 +175,10 @@ function getNextAvailableId(blogPosts) {
 async function addNewBlogPost() {
   try {
     // Read the current blog data file
-    let content = await fs.readFile(blogDataPath, 'utf8');
+    let fileContent = await fs.readFile(blogDataPath, 'utf8');
     
     // Extract the blogPosts array
-    let blogPostsMatch = content.match(/export const blogPosts: BlogPost\[\] = (\[[\s\S]*?\]);/);
+    let blogPostsMatch = fileContent.match(/export const blogPosts: BlogPost\[\] = (\[[\s\S]*?\]);/);
     
     if (!blogPostsMatch) {
       return {
@@ -225,7 +225,7 @@ async function addNewBlogPost() {
     
     // Generate new blog post
     const topic = topics[Math.floor(Math.random() * topics.length)];
-    const content = generatePostContent(topic);
+    const postContent = generatePostContent(topic);
     const id = getNextAvailableId(blogPosts);
     const slug = createSlug(topic);
     
@@ -237,7 +237,7 @@ async function addNewBlogPost() {
       title: topic,
       slug,
       excerpt: `Understanding the latest techniques for optimizing content for AI-driven search engines and answer engines in 2025.`,
-      content,
+      content: postContent,
       author: {
         name: "Alex Morgan",
         title: "AEO Specialist",
@@ -246,7 +246,7 @@ async function addNewBlogPost() {
       readTime: 5,
       category: "AEO",
       tags: ["AEO", "Search", "AI", "Content Strategy"],
-      coverImage: "/images/blog/aeo-cover.jpg",
+      coverImage: "/images/blog/aeo-cover.svg",
       featured: false
     };
     
@@ -292,7 +292,7 @@ async function addNewBlogPost() {
 ];`;
     
     // Replace the old blogPosts array with the new one
-    const updatedContent = content.replace(
+    const updatedContent = fileContent.replace(
       /export const blogPosts: BlogPost\[\] = \[[\s\S]*?\];/,
       newBlogPostsString
     );

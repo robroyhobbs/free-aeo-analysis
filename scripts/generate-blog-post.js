@@ -132,15 +132,8 @@ const authors = [
   }
 ];
 
-// Cover images (using Unsplash URLs that are used in existing blogs)
-const coverImages = [
-  "https://images.unsplash.com/photo-1698503539765-18fc2c9fd929?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1551636898-47668aa61de2?q=80&w=2080&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1659536540464-1501cb808c59?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1683009427500-71a13c0aaeb4?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1676299081867-10f82d5f0580?q=80&w=2071&auto=format&fit=crop"
-];
+// Cover image - using our standard AEO blog SVG
+const coverImage = "/images/blog/aeo-cover.svg";
 
 // Placeholder for blog content generation function
 function generatePostContent(topic) {
