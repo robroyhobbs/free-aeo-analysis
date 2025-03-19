@@ -53,7 +53,7 @@ export const blogPosts: BlogPost[] = [
     readTime: 8,
     category: "Content Strategy",
     tags: ["AEO", "Content Strategy", "AI", "Digital Marketing"],
-    coverImage: "https://images.unsplash.com/photo-1698503539765-18fc2c9fd929?q=80&w=2070&auto=format&fit=crop",
+    coverImage: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2070&auto=format&fit=crop",
     featured: true
   },
   {
