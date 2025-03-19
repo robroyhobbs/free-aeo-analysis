@@ -75,11 +75,11 @@ export default function BlogPage() {
                     </div>
                   </div>
                   
-                  <Button className="gradient-bg text-white">
-                    <Link href={`/blog/${featuredPost.slug}`}>
+                  <Link href={`/blog/${featuredPost.slug}`}>
+                    <Button className="gradient-bg text-white">
                       Read More
-                    </Link>
-                  </Button>
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -151,11 +151,11 @@ function BlogPostCard({ post }: { post: typeof blogPosts[0] }) {
             <span className="text-sm font-medium">{post.author.name}</span>
           </div>
           
-          <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-            <Link href={`/blog/${post.slug}`}>
+          <Link href={`/blog/${post.slug}`}>
+            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
               Read More
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
