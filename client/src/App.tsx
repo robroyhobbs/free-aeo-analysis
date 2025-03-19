@@ -6,6 +6,7 @@ import BlogDetailPage from "@/pages/blog-detail";
 import FAQPage from "@/pages/faq";
 import GuidePage from "@/pages/guide";
 import AnalyzerPage from "@/pages/analyzer";
+import AdminPage from "@/pages/admin";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/blog/:slug" component={BlogDetailPage} />
       <Route path="/faq" component={FAQPage} />
       <Route path="/guide" component={GuidePage} />
+      <Route path="/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>
   );
