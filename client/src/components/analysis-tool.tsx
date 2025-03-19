@@ -45,8 +45,56 @@ export function AnalysisTool() {
   // API mutation
   const analysisMutation = useMutation({
     mutationFn: async (urlToAnalyze: string) => {
-      const response = await apiRequest("POST", "/api/analyze", { url: urlToAnalyze });
-      return response.json();
+      try {
+        // Add timeout to the fetch request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const response = await apiRequest(
+          "POST", 
+          "/api/analyze", 
+          { url: urlToAnalyze }, 
+          { signal: controller.signal }
+        );
+        
+        // Clear the timeout
+        clearTimeout(timeoutId);
+        
+        // Check for response status
+        if (!response.ok) {
+          let errorMsg = "Server error occurred";
+          try {
+            const errorData = await response.json();
+            errorMsg = errorData.message || errorMsg;
+          } catch (e) {
+            // Unable to parse error JSON
+          }
+          throw new Error(errorMsg);
+        }
+        
+        return response.json();
+      } catch (error: unknown) {
+        // Handle specific error types
+        if (error instanceof Error) {
+          const err = error as Error;
+          if (err.name === "AbortError") {
+            throw new Error("Analysis request timed out. Please try again later.");
+          } else if (
+            err.message.includes("NetworkError") || 
+            err.message.includes("network")
+          ) {
+            throw new Error("Network error. Please check your internet connection and try again.");
+          } else if (
+            err.message.includes("JSON")
+          ) {
+            throw new Error("Error processing response from server. Please try again later.");
+          }
+          // Rethrow the error with its original message
+          throw error;
+        }
+        // Rethrow as a generic error if it's not an Error instance
+        throw new Error("An unexpected error occurred during analysis");
+      }
     },
     onError: (error: Error) => {
       // Stop the animation and show error
@@ -60,12 +108,25 @@ export function AnalysisTool() {
       setProgress(0);
       setCurrentStep(AnalysisStep.Idle);
       
+      // Determine the error message to display
+      let errorTitle = "Analysis Failed";
+      let errorDescription = error.message;
+      
+      if (error.message.includes("timed out")) {
+        errorTitle = "Request Timeout";
+        errorDescription = "The analysis took too long to complete. Please try again later or try a different URL.";
+      } else if (error.message.includes("network") || error.message.includes("Network")) {
+        errorTitle = "Connection Error";
+        errorDescription = "Unable to connect to the analysis server. Please check your internet connection.";
+      }
+      
       toast({
-        title: "Analysis Failed",
-        description: error.message,
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
-      setUrlError(error.message);
+      
+      setUrlError(errorDescription);
     }
   });
 

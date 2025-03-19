@@ -11,16 +11,27 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  options?: RequestInit
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const requestOptions: RequestInit = {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
-  });
+    ...options // Spread additional options (signal, cache, etc)
+  };
 
-  await throwIfResNotOk(res);
-  return res;
+  try {
+    const res = await fetch(url, requestOptions);
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error: unknown) {
+    // Handle AbortError specifically
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request was aborted due to timeout');
+    }
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
