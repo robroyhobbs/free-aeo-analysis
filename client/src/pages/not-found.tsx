@@ -4,10 +4,17 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { SEO } from "@/components/seo";
 
 export default function NotFound() {
   return (
     <>
+      <SEO 
+        title="404 - Page Not Found"
+        description="The page you're looking for couldn't be found. Navigate back to our homepage for Answer Engine Optimization resources."
+        keywords="404, page not found, error page"
+        canonical="/404"
+      />
       <Header />
       <div className="min-h-[70vh] w-full flex items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md mx-4">

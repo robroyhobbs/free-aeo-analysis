@@ -68,6 +68,15 @@ export default function BlogDetailPage() {
   
   return (
     <>
+      <SEO 
+        title={post.title}
+        description={post.excerpt}
+        keywords={post.tags.join(', ')}
+        canonical={`/blog/${post.slug}`}
+        ogImage={post.coverImage}
+        ogType="article"
+        structuredData={getBlogPostSchema(post)}
+      />
       <Header />
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         {/* Back button */}
