@@ -2,32 +2,32 @@ export const FEATURES = [
   {
     icon: "bullseye",
     title: "User Intent Focused",
-    description: "Optimize your content to directly answer specific questions your audience is asking. Businesses that focus on question-based content see up to 30% higher conversions as they address user needs precisely."
+    description: "Answer your audience's specific questions directly. Question-based content delivers 30% higher conversions by precisely addressing user needs."
   },
   {
     icon: "code",
     title: "Structured Data Magic",
-    description: "Implement JSON-LD schema to help AI engines understand your content's context and structure. Properly marked-up content has a 58% higher chance of being featured in AI answer boxes."
+    description: "JSON-LD schema helps AI engines understand your content. Properly marked-up pages are 58% more likely to appear in AI answer boxes."
   },
   {
     icon: "tachometer-alt",
     title: "Regular Updates",
-    description: "Keep your content fresh and current to signal relevance to AI systems. Updated content receives 2x more visibility in AI-powered search experiences than static, outdated content."
+    description: "Fresh content signals relevance to AI systems. Updated pages get 2x more visibility in AI search than static, outdated content."
   },
   {
     icon: "chart-line",
     title: "Measurable ROI",
-    description: "Track your AEO performance and see direct business impact. Companies optimized for answer engines report 35% higher organic traffic and 27% lower customer acquisition costs."
+    description: "AEO-optimized companies see 35% higher organic traffic and 27% lower acquisition costs. Track performance for direct business impact."
   },
   {
     icon: "trophy",
     title: "Competitive Advantage",
-    description: "Most businesses are still focused solely on traditional SEO. Early adopters of AEO strategies gain significant market share as AI-powered search becomes the norm for consumers."
+    description: "While competitors focus on traditional SEO, early AEO adopters gain market share as AI-powered search becomes the consumer norm."
   },
   {
     icon: "mobile-alt",
     title: "Voice Search Ready",
-    description: "AEO naturally optimizes your content for voice search queries which are projected to represent over 50% of all searches by 2026. Stay ahead of this rapidly growing trend."
+    description: "AEO optimizes for voice search, projected to be 50% of all searches by 2026. Stay ahead of this growing trend."
   }
 ];
 
