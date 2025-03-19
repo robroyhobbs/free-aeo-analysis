@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { LockIcon, UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -13,6 +14,7 @@ export function LoginForm() {
   const [loginStatus, setLoginStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
   const { login, isLoading, refreshAuthStatus } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Refresh auth status when form mounts
   useEffect(() => {

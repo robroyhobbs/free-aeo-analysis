@@ -10,9 +10,19 @@ import { Separator } from '@/components/ui/separator';
 import { LogOutIcon, LockIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+import { useEffect } from 'react';
+
 // Admin page for managing blog content
 export default function AdminPage() {
-  const { isAuthenticated, user, isLoading, logout } = useAuth();
+  const { isAuthenticated, user, isLoading, logout, refreshAuthStatus } = useAuth();
+  
+  // Explicitly refresh auth status when component mounts
+  useEffect(() => {
+    console.log('AdminPage - Refreshing auth status');
+    refreshAuthStatus();
+  }, [refreshAuthStatus]);
+  
+  console.log('AdminPage - Auth State:', { isAuthenticated, user, isLoading });
 
   return (
     <>
