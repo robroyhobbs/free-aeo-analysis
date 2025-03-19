@@ -232,12 +232,11 @@ function generateBlogPost() {
     
     console.log(`Selected topic: "${selectedTopic.title}"`);
     
-    // Select a random author and cover image
+    // Select a random author
     const author = authors[Math.floor(Math.random() * authors.length)];
-    const coverImage = coverImages[Math.floor(Math.random() * coverImages.length)];
     
-    if (!author || !coverImage) {
-      throw new Error('Failed to select author or cover image');
+    if (!author) {
+      throw new Error('Failed to select author');
     }
     
     // Generate a unique ID for the post
@@ -259,7 +258,7 @@ function generateBlogPost() {
       readTime: Math.floor(Math.random() * 6) + 5, // Random read time between 5-10 minutes
       category: selectedTopic.category,
       tags: selectedTopic.tags || ["AEO", "Content Strategy"], // Fallback tags if missing
-      coverImage,
+      coverImage: coverImage,
       featured: false // New posts are not featured by default
     };
     

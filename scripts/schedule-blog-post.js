@@ -2,7 +2,7 @@
 // This would typically be set up as a cron job on your server
 
 import cron from 'node-cron';
-import { generateBlogPost } from './generate-blog-post.js';
+import { fixBlogWithNewPost } from './fix-blog-with-new-post.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -33,12 +33,12 @@ cron.schedule('0 0 * * *', async () => {
   try {
     logActivity('Starting scheduled blog post generation...');
     
-    const result = generateBlogPost();
+    const result = await fixBlogWithNewPost();
     
-    if (result) {
-      logActivity('Blog post generated and added successfully');
+    if (result.success) {
+      logActivity(`Blog post generated and added successfully: "${result.post?.title || 'Untitled'}"`);
     } else {
-      logActivity('Failed to generate blog post');
+      logActivity(`Failed to generate blog post: ${result.error || 'Unknown error'}`);
     }
   } catch (error) {
     logActivity(`Error in scheduled blog generation: ${error.message}`);
@@ -51,12 +51,17 @@ logActivity('Blog post scheduler started. Will generate new posts daily at midni
 if (process.argv.includes('--now')) {
   try {
     logActivity('Manually generating blog post now...');
-    const result = generateBlogPost();
-    if (result) {
-      logActivity('Blog post generated and added successfully');
-    } else {
-      logActivity('Failed to generate blog post');
-    }
+    fixBlogWithNewPost()
+      .then(result => {
+        if (result.success) {
+          logActivity(`Blog post generated and added successfully: "${result.post?.title || 'Untitled'}"`);
+        } else {
+          logActivity(`Failed to generate blog post: ${result.error || 'Unknown error'}`);
+        }
+      })
+      .catch(error => {
+        logActivity(`Error in manual blog generation: ${error.message}`);
+      });
   } catch (error) {
     logActivity(`Error in manual blog generation: ${error.message}`);
   }
