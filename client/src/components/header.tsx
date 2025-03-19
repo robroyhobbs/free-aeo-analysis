@@ -24,11 +24,11 @@ export function Header() {
             </Link>
           </div>
           <nav className="hidden md:flex space-x-8 items-center">
-            <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">Analyzer</Link>
+            <Link href="/analyzer" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">Analyzer</Link>
             <Link href="/guide" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">AEO Guide</Link>
             <Link href="/blog" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">Blog</Link>
             <Link href="/faq" className="text-slate-800 hover:text-primary font-medium tracking-tight transition-colors duration-200">FAQ</Link>
-            <Link href="/#analysis-tool">
+            <Link href="/analyzer">
               <Button className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90 px-5 py-2.5 transition-all duration-200">
                 Get Started
               </Button>
@@ -47,11 +47,11 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden py-3">
             <div className="flex flex-col space-y-4 pb-4 border-t border-gray-100 pt-4 mt-2">
-              <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>Analyzer</Link>
+              <Link href="/analyzer" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>Analyzer</Link>
               <Link href="/guide" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>AEO Guide</Link>
               <Link href="/blog" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
               <Link href="/faq" className="text-slate-800 hover:text-primary font-medium py-2.5 px-2 transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
-              <Link href="/#analysis-tool" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/analyzer" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="gradient-bg w-full py-2.5 mt-2 transition-all duration-200">Get Started</Button>
               </Link>
             </div>

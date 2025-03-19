@@ -5,11 +5,13 @@ import BlogPage from "@/pages/blog";
 import BlogDetailPage from "@/pages/blog-detail";
 import FAQPage from "@/pages/faq";
 import GuidePage from "@/pages/guide";
+import AnalyzerPage from "@/pages/analyzer";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/analyzer" component={AnalyzerPage} />
       <Route path="/blog" component={BlogPage} />
       <Route path="/blog/:slug" component={BlogDetailPage} />
       <Route path="/faq" component={FAQPage} />
