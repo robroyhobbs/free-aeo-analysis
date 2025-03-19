@@ -35,7 +35,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (err) {
         return res.status(500).json({ success: false, message: 'Logout failed' });
       }
-      res.json({ success: true, message: 'Logout successful' });
+      // Destroy the session completely
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ success: false, message: 'Failed to destroy session' });
+        }
+        // Clear the cookie
+        res.clearCookie('connect.sid');
+        res.json({ success: true, message: 'Logout successful' });
+      });
     });
   });
   

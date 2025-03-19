@@ -17,7 +17,12 @@ app.use(express.urlencoded({ extended: false }));
 // Configure session
 const SessionStore = MemoryStore(session);
 app.use(session({
-  cookie: { maxAge: 86400000 }, // 24 hours
+  cookie: { 
+    maxAge: 86400000, // 24 hours
+    secure: false,    // Allow cookies over HTTP for development
+    sameSite: 'lax', // Helps with CSRF protection while allowing normal usage
+    httpOnly: true    // Prevents JavaScript from reading the cookie
+  },
   store: new SessionStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
