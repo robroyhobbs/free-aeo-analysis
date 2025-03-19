@@ -35,7 +35,7 @@ export const blogPosts: BlogPost[] = [
     readTime: 8,
     category: "Content Strategy",
     tags: ["AEO", "Content Strategy", "AI", "Digital Marketing"],
-    coverImage: "https://images.unsplash.com/photo-1677442135968-6052d5a4aecd?q=80&w=1932&auto=format&fit=crop",
+    coverImage: "https://images.unsplash.com/photo-1698503539765-18fc2c9fd929?q=80&w=2070&auto=format&fit=crop",
     featured: true
   },
   {
@@ -53,7 +53,7 @@ export const blogPosts: BlogPost[] = [
     readTime: 10,
     category: "Content Strategy",
     tags: ["AEO", "Question-Based Content", "Content Structure"],
-    coverImage: "https://images.unsplash.com/photo-1631603090989-93f9ef6f9d80?q=80&w=1972&auto=format&fit=crop",
+    coverImage: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=2070&auto=format&fit=crop",
     featured: false
   },
   {
@@ -71,7 +71,7 @@ export const blogPosts: BlogPost[] = [
     readTime: 12,
     category: "Analytics",
     tags: ["AEO", "Analytics", "Metrics", "KPIs"],
-    coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop",
+    coverImage: "https://images.unsplash.com/photo-1551636898-47668aa61de2?q=80&w=2080&auto=format&fit=crop",
     featured: false
   },
   {
@@ -89,7 +89,7 @@ export const blogPosts: BlogPost[] = [
     readTime: 11,
     category: "Strategy",
     tags: ["AEO", "SEO", "Content Strategy", "Digital Marketing"],
-    coverImage: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=2074&auto=format&fit=crop",
+    coverImage: "https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2076&auto=format&fit=crop",
     featured: false
   }
 ];
