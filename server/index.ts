@@ -90,27 +90,7 @@ passport.deserializeUser(async (id: number, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Setup CSRF protection - using the default cookie name "_csrf"
-const csrfProtection = csurf({ 
-  cookie: {
-    key: '_csrf',
-    path: '/',
-    sameSite: 'lax',
-    secure: false, // Set to true in production with HTTPS
-    httpOnly: true
-  }
-});
-
-// CSRF token endpoint - must come before protected routes
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
-
-// Apply CSRF protection to all state-changing routes
-app.use('/api/auth/login', csrfProtection);
-app.use('/api/auth/logout', csrfProtection);
-app.use('/api/analyze', csrfProtection);
-app.use('/api/admin/generate-blog', csrfProtection);
+// CSRF protection is configured in routes.ts
 
 app.use((req, res, next) => {
   const start = Date.now();

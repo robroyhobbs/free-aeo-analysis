@@ -8,6 +8,7 @@ import { dirname, join } from 'path';
 import { spawn } from 'child_process';
 import { ZodError } from "zod";
 import passport from "passport";
+import csurf from "csurf";
 
 // Auth middleware
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
@@ -17,9 +18,38 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   res.status(401).json({ success: false, message: 'Please login to access this resource' });
 }
 
+// CSRF protection middleware
+const csrfProtection = csurf({
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: false // Set to true in production with HTTPS
+  }
+});
+
+// Handle CSRF errors with a custom error handler
+function handleCsrfError(err: any, req: Request, res: Response, next: NextFunction) {
+  if (err.code !== 'EBADCSRFTOKEN') {
+    return next(err);
+  }
+  
+  // CSRF validation failed
+  res.status(403).json({ 
+    message: 'Invalid or missing CSRF token. Please refresh the page and try again.'
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // CSRF token endpoint must come first
+  app.get('/api/csrf-token', csrfProtection, (req: Request, res: Response) => {
+    res.json({ csrfToken: req.csrfToken() });
+  });
+  
+  // Register CSRF error handler
+  app.use(handleCsrfError);
   // Authentication routes
   app.post('/api/auth/login', 
+    csrfProtection,
     passport.authenticate('local'),
     (req: Request, res: Response) => {
       res.json({ 
@@ -30,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
   
-  app.post('/api/auth/logout', (req: Request, res: Response) => {
+  app.post('/api/auth/logout', csrfProtection, (req: Request, res: Response) => {
     req.logout((err) => {
       if (err) {
         return res.status(500).json({ success: false, message: 'Logout failed' });
@@ -58,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   // Analyze website route
-  app.post("/api/analyze", async (req: Request, res: Response) => {
+  app.post("/api/analyze", csrfProtection, async (req: Request, res: Response) => {
     try {
       // Validate the request
       const { url, competitorUrl, industry, contentFocus, analysisDepth } = validUrlSchema.parse(req.body);
@@ -142,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Admin endpoint to manually generate a blog post - protected by auth
-  app.post("/api/admin/generate-blog", isAuthenticated, async (_req: Request, res: Response) => {
+  app.post("/api/admin/generate-blog", csrfProtection, isAuthenticated, async (_req: Request, res: Response) => {
     try {
       // Get the current file's directory
       const __filename = fileURLToPath(import.meta.url);
