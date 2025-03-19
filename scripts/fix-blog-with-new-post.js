@@ -268,7 +268,7 @@ async function addNewBlogPost() {
     readTime: ${post.readTime || 5},
     category: "${post.category || 'Category'}",
     tags: ${JSON.stringify(post.tags || ['Tag'])},
-    coverImage: "${post.coverImage || '/images/blog/default.jpg'}",
+    coverImage: "${post.coverImage || '/images/blog/aeo-cover.svg'}",
     featured: ${post.featured || false}
   }`
   }).join(',\n  ')},
