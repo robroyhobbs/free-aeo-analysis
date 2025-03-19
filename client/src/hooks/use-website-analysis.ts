@@ -169,5 +169,6 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
     progress,
     currentStep,
     analysisResult,
+    isCompleted: currentStep === AnalysisStep.Complete,
   };
 }

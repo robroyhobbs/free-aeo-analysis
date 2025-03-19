@@ -26,7 +26,8 @@ export function AnalysisTool() {
     progress, 
     currentStep, 
     analysisResult, 
-    reset 
+    reset,
+    isCompleted
   } = useWebsiteAnalysis({
     onError: (error) => {
       toast({
@@ -71,7 +72,7 @@ export function AnalysisTool() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
       <Card className="overflow-hidden shadow-xl border-t-4 border-primary">
         {/* Analysis Input Section */}
-        {!isAnalyzing && !analysisResult && (
+        {!isAnalyzing && !isCompleted && !analysisResult && (
           <CardContent className="px-6 py-6">
             <div className="text-center mb-4">
               <h2 className="text-2xl font-semibold mb-2">Analyze Your Website</h2>
@@ -110,7 +111,7 @@ export function AnalysisTool() {
         )}
         
         {/* Analysis Loading Section */}
-        {isAnalyzing && (
+        {isAnalyzing && !isCompleted && (
           <CardContent className="px-6 py-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-semibold mb-2">Analyzing Your Website</h2>
@@ -190,7 +191,7 @@ export function AnalysisTool() {
         )}
         
         {/* Analysis Results Section */}
-        {analysisResult && (
+        {isCompleted && analysisResult && (
           <>
             {/* Results Header with Score */}
             <div className="px-6 py-8 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
