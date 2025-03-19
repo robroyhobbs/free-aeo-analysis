@@ -1,4 +1,5 @@
 import { analyses, type Analysis, type InsertAnalysis } from "@shared/schema";
+import bcrypt from 'bcryptjs';
 
 // modify the interface with any CRUD methods
 // you might need
@@ -14,6 +15,7 @@ export interface IStorage {
   getUser(id: number): Promise<any | undefined>;
   getUserByUsername(username: string): Promise<any | undefined>;
   createUser(user: any): Promise<any>;
+  validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean>;
   
   // Analysis related methods
   saveAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
@@ -37,10 +39,10 @@ export class MemStorage implements IStorage {
     this.currentUserId = 1;
     this.currentAnalysisId = 1;
     
-    // Create a default admin user
+    // Create a default admin user with hashed password
     this.createUser({
       username: "admin",
-      password: "admin123" // In a real app, this would be hashed
+      password: "admin123" // Will be hashed in createUser method
     });
   }
 
@@ -56,9 +58,23 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: any): Promise<any> {
     const id = this.currentUserId++;
-    const user = { ...insertUser, id };
+    
+    // Hash the password before storing
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
+    
+    const user = { 
+      ...insertUser, 
+      id, 
+      password: hashedPassword  // Store the hashed password
+    };
+    
     this.users.set(id, user);
     return user;
+  }
+  
+  async validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+    return bcrypt.compare(plainPassword, hashedPassword);
   }
   
   async saveAnalysis(insertAnalysis: InsertAnalysis): Promise<Analysis> {

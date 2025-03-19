@@ -8,6 +8,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
+import csurf from 'csurf';
 import { storage } from "./storage";
 
 const app = express();
@@ -39,9 +40,13 @@ passport.use(new LocalStrategy(
       if (!user) {
         return done(null, false, { message: 'Incorrect username.' });
       }
-      if (user.password !== password) { // In a real app, use bcrypt to compare passwords
+      
+      // Use bcrypt to verify the password
+      const isValid = await storage.validatePassword(password, user.password);
+      if (!isValid) {
         return done(null, false, { message: 'Incorrect password.' });
       }
+      
       return done(null, user);
     } catch(err) {
       return done(err);
@@ -65,6 +70,26 @@ passport.deserializeUser(async (id: number, done) => {
 // Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Setup CSRF protection
+const csrfProtection = csurf({ 
+  cookie: {
+    sameSite: 'lax',
+    secure: false, // Set to true in production with HTTPS
+    httpOnly: true
+  } 
+});
+
+// Apply CSRF protection to all state-changing routes
+app.use('/api/auth/login', csrfProtection);
+app.use('/api/auth/logout', csrfProtection);
+app.use('/api/analyze', csrfProtection);
+app.use('/api/admin/generate-blog', csrfProtection);
+
+// CSRF token endpoint
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
