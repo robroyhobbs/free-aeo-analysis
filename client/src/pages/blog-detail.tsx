@@ -17,24 +17,36 @@ export default function BlogDetailPage() {
   const [relatedPosts, setRelatedPosts] = useState<typeof blogPosts>([]);
   
   useEffect(() => {
-    if (params?.slug) {
-      const foundPost = blogPosts.find(p => p.slug === params.slug);
-      if (foundPost) {
-        setPost(foundPost);
-        
-        // Find related posts based on category or tags
-        const related = blogPosts
-          .filter(p => p.id !== foundPost.id)
-          .filter(p => 
-            p.category === foundPost.category || 
-            p.tags.some(tag => foundPost.tags.includes(tag))
-          )
-          .slice(0, 3);
-        
-        setRelatedPosts(related);
-      }
+    // Only run this effect if we have a slug parameter
+    if (!params?.slug) return;
+    
+    // Find the post that matches the slug
+    const foundPost = blogPosts.find(p => p.slug === params.slug);
+    
+    // If we can't find the post, set post to null and return
+    if (!foundPost) {
+      setPost(null);
+      setRelatedPosts([]);
+      return;
     }
-  }, [params]);
+    
+    // If post ID is the same as before, don't update state to avoid infinite loops
+    if (post?.id === foundPost.id) return;
+    
+    // Set the found post
+    setPost(foundPost);
+    
+    // Find related posts based on category or tags
+    const related = blogPosts
+      .filter(p => p.id !== foundPost.id)
+      .filter(p => 
+        p.category === foundPost.category || 
+        p.tags.some(tag => foundPost.tags.includes(tag))
+      )
+      .slice(0, 3);
+    
+    setRelatedPosts(related);
+  }, [params, post?.id]);
   
   if (!post) {
     return (

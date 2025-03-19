@@ -1,20 +1,24 @@
+import { Link } from "wouter";
+
 export function Footer() {
   return (
     <footer className="bg-slate-800 text-slate-200 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center mb-4">
-              <div className="gradient-bg text-white rounded-lg p-2 mr-3">
-                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            <Link href="/">
+              <div className="flex items-center mb-4 cursor-pointer">
+                <div className="gradient-bg text-white rounded-lg p-2 mr-3">
+                  <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xl font-bold text-white">Free AEO Analysis</span>
+                  <span className="text-xs text-slate-400">free-aeo-analysis.com</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-bold text-white">Free AEO Analysis</span>
-                <span className="text-xs text-slate-400">free-aeo-analysis.com</span>
-              </div>
-            </div>
+            </Link>
             <p className="text-slate-400 mb-4">
               The ultimate tool for analyzing and optimizing your website for AI answer engines. Get actionable insights in seconds.
             </p>
@@ -35,9 +39,9 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-medium text-white mb-4">Analysis Tools</h3>
             <ul className="space-y-2">
-              <li><a href="#analysis-tool" className="text-slate-400 hover:text-white">Website Analyzer</a></li>
-              <li><a href="#features" className="text-slate-400 hover:text-white">Feature Overview</a></li>
-              <li><a href="/blog" className="text-slate-400 hover:text-white">Blog</a></li>
+              <li><Link href="/#analysis-tool" className="text-slate-400 hover:text-white">Website Analyzer</Link></li>
+              <li><Link href="/#features" className="text-slate-400 hover:text-white">Feature Overview</Link></li>
+              <li><Link href="/blog" className="text-slate-400 hover:text-white">Blog</Link></li>
               <li><a href="#" className="text-slate-400 hover:text-white">API Access</a></li>
             </ul>
           </div>
@@ -46,7 +50,7 @@ export function Footer() {
             <h3 className="text-lg font-medium text-white mb-4">AEO Resources</h3>
             <ul className="space-y-2">
               <li><a href="#" className="text-slate-400 hover:text-white">AEO Guide</a></li>
-              <li><a href="/blog" className="text-slate-400 hover:text-white">Blog</a></li>
+              <li><Link href="/blog" className="text-slate-400 hover:text-white">Blog</Link></li>
               <li><a href="#" className="text-slate-400 hover:text-white">Case Studies</a></li>
               <li><a href="#" className="text-slate-400 hover:text-white">FAQ</a></li>
             </ul>
