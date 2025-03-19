@@ -144,20 +144,9 @@ function generatePostContent(topic) {
   // In a real implementation, you would connect to an AI service like Llama 3.3
   // For this example, we'll create a comprehensive structured template
   
-  // Get all blog posts for cross-linking
+  // Use generic cross-links instead of trying to import dynamically
+  // This avoids issues with importing TypeScript files
   let otherPosts = [];
-  try {
-    // Dynamically import the blog data (careful not to create circular references)
-    import('../client/src/blog/blog-data.js')
-      .then(module => {
-        if (module && module.blogPosts) {
-          otherPosts = module.blogPosts;
-        }
-      })
-      .catch(err => console.error('Error importing blog posts for cross-linking:', err));
-  } catch (err) {
-    console.log('Could not import blog posts for cross-linking, will use generic links');
-  }
   
   // Create cross-links to 2-3 other blog posts
   let crossLinks = '';
@@ -313,7 +302,6 @@ ${expandedConclusionSection}
 ${crossLinks}
 
 ${citations}`;
-}
 }
 
 // Function to create a slug from a title
@@ -510,9 +498,9 @@ function updateBlogDataFile(newPost) {
       '\n' + postString + 
       content.slice(insertPos);
     
-    // Verify the updated content still has proper syntax - use less strict validation
-    if (!updatedContent.includes(arrayStartText) || !updatedContent.includes(postString)) {
-      throw new Error('Generated content appears malformed - missing key elements');
+    // Simpler validation - just verify the array structure exists
+    if (!updatedContent.includes(arrayStartText)) {
+      throw new Error('Generated content appears malformed - missing array declaration');
     }
     
     // Simpler check to make sure the array syntax is still valid
