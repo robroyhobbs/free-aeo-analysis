@@ -7,6 +7,8 @@ import FAQPage from "@/pages/faq";
 import GuidePage from "@/pages/guide";
 import AnalyzerPage from "@/pages/analyzer";
 import AdminPage from "@/pages/admin";
+import TermsPage from "@/pages/terms";
+import PrivacyPage from "@/pages/privacy";
 
 function Router() {
   return (
@@ -18,6 +20,8 @@ function Router() {
       <Route path="/faq" component={FAQPage} />
       <Route path="/guide" component={GuidePage} />
       <Route path="/admin" component={AdminPage} />
+      <Route path="/terms" component={TermsPage} />
+      <Route path="/privacy" component={PrivacyPage} />
       <Route component={NotFound} />
     </Switch>
   );
