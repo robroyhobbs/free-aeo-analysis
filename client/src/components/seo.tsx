@@ -1,6 +1,12 @@
-import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
+
+// Constants
+const DEFAULT_TITLE = 'Free AEO Analysis - AI-Powered Website Analysis';
+const DEFAULT_DESCRIPTION = 'Analyze your website for Answer Engine Optimization (AEO) and AI readiness. Get actionable insights and improve your visibility in AI-powered search.';
+const DEFAULT_KEYWORDS = 'AEO, Answer Engine Optimization, AI optimization, website analysis, SEO, content optimization';
+const DOMAIN = 'https://free-aeo-analysis.com';
+const STRUCTURED_DATA_ID = 'structured-data';
 
 interface SEOProps {
   title?: string;
@@ -13,19 +19,62 @@ interface SEOProps {
 }
 
 export function SEO({ 
-  title = 'Free AEO Analysis - AI-Powered Website Analysis',
-  description = 'Analyze your website for Answer Engine Optimization (AEO) and AI readiness. Get actionable insights and improve your visibility in AI-powered search.',
-  keywords = 'AEO, Answer Engine Optimization, AI optimization, website analysis, SEO, content optimization',
+  title = DEFAULT_TITLE,
+  description = DEFAULT_DESCRIPTION,
+  keywords = DEFAULT_KEYWORDS,
   ogImage = '',
   ogType = 'website',
   canonical = '',
   structuredData = undefined
 }: SEOProps) {
   const [location] = useLocation();
-  const domain = 'https://free-aeo-analysis.com';
-  const fullTitle = title + ' | free-aeo-analysis.com';
-  const fullCanonical = canonical ? `${domain}${canonical}` : `${domain}${location}`;
-  const fullOgImage = ogImage ? (ogImage.startsWith('http') ? ogImage : `${domain}${ogImage}`) : '';
+  const fullTitle = `${title} | free-aeo-analysis.com`;
+  const fullCanonical = canonical ? `${DOMAIN}${canonical}` : `${DOMAIN}${location}`;
+  const fullOgImage = ogImage ? (ogImage.startsWith('http') ? ogImage : `${DOMAIN}${ogImage}`) : '';
+  
+  // Memoized helper functions using useCallback
+  const updateMetaTag = useCallback((name: string, content: string) => {
+    const selector = `meta[${name.startsWith('og:') || name.startsWith('twitter:') ? 'property' : 'name'}="${name}"]`;
+    let meta = document.querySelector(selector);
+    
+    if (!meta) {
+      meta = document.createElement('meta');
+      const attributeName = name.startsWith('og:') || name.startsWith('twitter:') ? 'property' : 'name';
+      meta.setAttribute(attributeName, name);
+      document.head.appendChild(meta);
+    }
+    
+    meta.setAttribute('content', content);
+  }, []);
+  
+  const updateCanonicalLink = useCallback((href: string) => {
+    let link = document.querySelector('link[rel="canonical"]');
+    
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    
+    link.setAttribute('href', href);
+  }, []);
+  
+  const addStructuredData = useCallback((data: Record<string, any>) => {
+    removeStructuredData();
+    
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = STRUCTURED_DATA_ID;
+    script.textContent = JSON.stringify(data);
+    document.head.appendChild(script);
+  }, []);
+  
+  const removeStructuredData = useCallback(() => {
+    const script = document.getElementById(STRUCTURED_DATA_ID);
+    if (script) {
+      script.remove();
+    }
+  }, []);
 
   useEffect(() => {
     // Update document title
@@ -63,56 +112,25 @@ export function SEO({
     }
     
     return () => {
-      // Clean up structured data when component unmounts
       removeStructuredData();
     };
-  }, [title, description, keywords, ogImage, ogType, location, canonical, structuredData]);
+  }, [
+    title, 
+    description, 
+    keywords, 
+    ogImage, 
+    ogType, 
+    location, 
+    canonical, 
+    structuredData,
+    fullTitle,
+    fullCanonical,
+    fullOgImage,
+    updateMetaTag,
+    updateCanonicalLink,
+    addStructuredData,
+    removeStructuredData
+  ]);
   
   return null;
-}
-
-// Helper functions
-function updateMetaTag(name: string, content: string) {
-  let meta = document.querySelector(`meta[name="${name}"], meta[property="${name}"]`);
-  
-  if (!meta) {
-    meta = document.createElement('meta');
-    if (name.startsWith('og:') || name.startsWith('twitter:')) {
-      meta.setAttribute('property', name);
-    } else {
-      meta.setAttribute('name', name);
-    }
-    document.head.appendChild(meta);
-  }
-  
-  meta.setAttribute('content', content);
-}
-
-function updateCanonicalLink(href: string) {
-  let link = document.querySelector('link[rel="canonical"]');
-  
-  if (!link) {
-    link = document.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    document.head.appendChild(link);
-  }
-  
-  link.setAttribute('href', href);
-}
-
-function addStructuredData(data: Record<string, any>) {
-  removeStructuredData(); // Remove any existing structured data
-  
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.id = 'structured-data';
-  script.textContent = JSON.stringify(data);
-  document.head.appendChild(script);
-}
-
-function removeStructuredData() {
-  const script = document.getElementById('structured-data');
-  if (script) {
-    script.remove();
-  }
 }

@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
 import { Brain, Cpu, Database, Search, Zap } from "lucide-react";
+
+// Constants
+const ANIMATION_DURATION = 8000; // 8 seconds
+const UPDATE_INTERVAL = 40; // 40ms for smooth animation
 
 interface AILoadingAnimationProps {
   step: number;
@@ -7,77 +11,97 @@ interface AILoadingAnimationProps {
   progress: number;
 }
 
+// Step information with types
+interface StepInfo {
+  icon: JSX.Element;
+  title: string;
+  subtitle: string;
+}
+
+// Particle interface
+interface Particle {
+  angle: number;
+  radius: number;
+  delay: number;
+}
+
+// Memoized step icons to prevent unnecessary re-renders
+const SearchIcon = memo(() => <Search className="w-5 h-5" />);
+const CpuIcon = memo(() => <Cpu className="w-5 h-5" />);
+const BrainIcon = memo(() => <Brain className="w-5 h-5" />);
+const DatabaseIcon = memo(() => <Database className="w-5 h-5" />);
+const ZapIcon = memo(() => <Zap className="w-5 h-5" />);
+
 export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimationProps) {
   const [timeElapsed, setTimeElapsed] = useState<number>(0);
 
   // Timer to ensure animation runs for at least 8 seconds
   useEffect(() => {
     const startTime = Date.now();
-    const animationDuration = 8000; // 8 seconds
     
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTime;
-      const percentComplete = Math.min(100, (elapsed / animationDuration) * 100);
+      const percentComplete = Math.min(100, (elapsed / ANIMATION_DURATION) * 100);
       setTimeElapsed(percentComplete);
       
       // If animation completed, clear the timer
       if (percentComplete >= 100) {
         clearInterval(timer);
       }
-    }, 40); // Update roughly every 40ms for smooth animation
+    }, UPDATE_INTERVAL);
 
     return () => clearInterval(timer);
   }, []);
 
-  // Calculate action text based on current step
-  const getStepInfo = (step: number) => {
-    switch (step) {
-      case 1:
-        return { 
-          icon: <Search className="w-5 h-5" />,
-          title: 'Crawling Website',
-          subtitle: 'Gathering content and structure data'
-        };
-      case 2:
-        return { 
-          icon: <Cpu className="w-5 h-5" />,
-          title: 'Processing Content',
-          subtitle: 'Analyzing text and semantic structure'
-        };
-      case 3:
-        return { 
-          icon: <Brain className="w-5 h-5" />,
-          title: 'AI Analysis',
-          subtitle: 'Evaluating user-intent alignment'
-        };
-      case 4:
-        return { 
-          icon: <Database className="w-5 h-5" />,
-          title: 'Generating Report',
-          subtitle: 'Compiling insights and recommendations'
-        };
-      default:
-        return { 
-          icon: <Zap className="w-5 h-5" />,
-          title: 'Initializing',
-          subtitle: 'Preparing analysis tools'
-        };
-    }
-  };
+  // Memoized step information to avoid recalculations on re-renders
+  const stepInfo = useMemo(() => {
+    const stepMap: Record<number, StepInfo> = {
+      0: { 
+        icon: <ZapIcon />,
+        title: 'Initializing',
+        subtitle: 'Preparing analysis tools'
+      },
+      1: { 
+        icon: <SearchIcon />,
+        title: 'Crawling Website',
+        subtitle: 'Gathering content and structure data'
+      },
+      2: { 
+        icon: <CpuIcon />,
+        title: 'Processing Content',
+        subtitle: 'Analyzing text and semantic structure'
+      },
+      3: { 
+        icon: <BrainIcon />,
+        title: 'AI Analysis',
+        subtitle: 'Evaluating user-intent alignment'
+      },
+      4: { 
+        icon: <DatabaseIcon />,
+        title: 'Generating Report',
+        subtitle: 'Compiling insights and recommendations'
+      }
+    };
+    
+    return stepMap[step] || stepMap[0];
+  }, [step]);
 
-  const currentStepInfo = getStepInfo(step);
-  
+  // Use the current step info directly from our memoized value
+  const currentStepInfo = stepInfo;
+
   // Force natural-looking progress increase to ensure animation runs for full 8 seconds
   const displayProgress = Math.min(progress, timeElapsed);
 
-  // Calculate particle positions based on current progress
-  const particleCount = 15;
-  const particles = Array.from({ length: particleCount }, (_, i) => {
-    const angle = (i / particleCount) * Math.PI * 2;
-    const radius = 40 + (i % 3) * 15;
-    const delay = i * 0.1;
-    return { angle, radius, delay };
-  });
+  // Memoized particle positions to avoid recalculations
+  const particles: Particle[] = useMemo(() => {
+    const particleCount = 15;
+    return Array.from({ length: particleCount }, (_, i) => {
+      const angle = (i / particleCount) * Math.PI * 2;
+      const radius = 40 + (i % 3) * 15;
+      const delay = i * 0.1;
+      return { angle, radius, delay };
+    });
+  }, []);
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -208,12 +232,12 @@ export function AILoadingAnimation({ step, subStep, progress }: AILoadingAnimati
         <div className="relative mb-6 z-10">
           <div className="flex items-center justify-center gap-2 mb-1">
             <div className={`p-2 rounded-full bg-indigo-100 text-primary animate-metric-glow`}>
-              {currentStepInfo.icon}
+              {stepInfo.icon}
             </div>
-            <div className="text-xl font-medium text-slate-800 animate-fade-in">{currentStepInfo.title}</div>
+            <div className="text-xl font-medium text-slate-800 animate-fade-in">{stepInfo.title}</div>
           </div>
           <div className="text-center text-slate-500 text-sm animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            {currentStepInfo.subtitle}
+            {stepInfo.subtitle}
           </div>
         </div>
         

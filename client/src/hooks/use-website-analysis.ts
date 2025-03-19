@@ -1,7 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AnalysisResult, AnalysisStep } from "@/types";
+
+// Constants
+const ANIMATION_DURATION = 8000; // 8 seconds
+const UPDATE_INTERVAL = 80; // 80ms for smooth animation
+const STEP_THRESHOLDS = {
+  CRAWLING: 25,   // 0-25%
+  ANALYZING: 55,  // 25-55% 
+  CALCULATING: 80 // 55-80%
+  // Beyond 80% is GENERATING
+  // 100% is COMPLETE
+};
 
 interface UseWebsiteAnalysisOptions {
   onError?: (error: Error) => void;
@@ -13,11 +24,27 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
   const [currentStep, setCurrentStep] = useState<AnalysisStep>(AnalysisStep.Idle);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [isShowingResults, setIsShowingResults] = useState(false);
-  const [animationTimer, setAnimationTimer] = useState<NodeJS.Timeout | null>(null);
   const [savedResult, setSavedResult] = useState<AnalysisResult | null>(null);
-
-  // Animation duration in ms (8 seconds)
-  const ANIMATION_DURATION = 8000;
+  
+  // Use ref for timer to avoid unnecessary re-renders
+  const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Helper to update step based on progress
+  const determineStep = useCallback((progressValue: number): AnalysisStep => {
+    if (progressValue >= 100) return AnalysisStep.Complete;
+    if (progressValue >= STEP_THRESHOLDS.CALCULATING) return AnalysisStep.Generating;
+    if (progressValue >= STEP_THRESHOLDS.ANALYZING) return AnalysisStep.Calculating;
+    if (progressValue >= STEP_THRESHOLDS.CRAWLING) return AnalysisStep.Analyzing;
+    return AnalysisStep.Crawling;
+  }, []);
+  
+  // Memoized clean up timer function
+  const clearAnimationTimer = useCallback(() => {
+    if (animationTimerRef.current) {
+      clearInterval(animationTimerRef.current);
+      animationTimerRef.current = null;
+    }
+  }, []);
   
   // Handle synchronization of animation completion and results
   useEffect(() => {
@@ -27,6 +54,31 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
       setSavedResult(null);
     }
   }, [progress, savedResult]);
+  
+  // Start animation timer - memoized to avoid recreating this function
+  const startAnimationTimer = useCallback(() => {
+    // Clear any existing timer first
+    clearAnimationTimer();
+    
+    // Start new animation timer
+    const startTime = Date.now();
+    animationTimerRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min(100, Math.round((elapsed / ANIMATION_DURATION) * 100));
+      
+      // Update progress
+      setProgress(newProgress);
+      
+      // Update step based on progress percentage
+      setCurrentStep(determineStep(newProgress));
+      
+      // If animation completes
+      if (newProgress >= 100) {
+        clearAnimationTimer();
+        setCurrentStep(AnalysisStep.Complete);
+      }
+    }, UPDATE_INTERVAL);
+  }, [clearAnimationTimer, determineStep]);
   
   // API mutation
   const analysisMutation = useMutation({
@@ -42,41 +94,8 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
       setAnalysisResult(null);
       setSavedResult(null);
       
-      // Clear any existing timer
-      if (animationTimer) {
-        clearInterval(animationTimer);
-      }
-      
-      // Start new animation timer
-      const startTime = Date.now();
-      const newTimer = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const newProgress = Math.min(100, Math.round((elapsed / ANIMATION_DURATION) * 100));
-        
-        // Update progress
-        setProgress(newProgress);
-        
-        // Update step based on progress percentage
-        if (newProgress < 25) {
-          setCurrentStep(AnalysisStep.Crawling);
-        } else if (newProgress < 55) {
-          setCurrentStep(AnalysisStep.Analyzing);
-        } else if (newProgress < 80) {
-          setCurrentStep(AnalysisStep.Calculating);
-        } else {
-          setCurrentStep(AnalysisStep.Generating);
-        }
-        
-        // If animation completes
-        if (newProgress >= 100) {
-          clearInterval(newTimer);
-          setAnimationTimer(null);
-          setCurrentStep(AnalysisStep.Complete);
-        }
-      }, 80); // Update approximately every 80ms for smooth animation
-      
-      // Save timer reference
-      setAnimationTimer(newTimer);
+      // Start animation timer
+      startAnimationTimer();
     },
     onSuccess: (data: AnalysisResult) => {
       // Save result data for when animation completes
@@ -91,10 +110,7 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
     },
     onError: (error: Error) => {
       // Clear timer on error
-      if (animationTimer) {
-        clearInterval(animationTimer);
-        setAnimationTimer(null);
-      }
+      clearAnimationTimer();
       
       // Reset progress
       setProgress(0);
@@ -109,24 +125,17 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
   
   // Clean up timer on unmount
   useEffect(() => {
-    return () => {
-      if (animationTimer) {
-        clearInterval(animationTimer);
-      }
-    };
-  }, [animationTimer]);
+    return clearAnimationTimer;
+  }, [clearAnimationTimer]);
   
-  // Public API methods
-  const analyze = (url: string) => {
+  // Public API methods - memoized to avoid recreation on each render
+  const analyze = useCallback((url: string) => {
     analysisMutation.mutate(url);
-  };
+  }, [analysisMutation]);
   
-  const reset = () => {
+  const reset = useCallback(() => {
     // Clear any running timer
-    if (animationTimer) {
-      clearInterval(animationTimer);
-      setAnimationTimer(null);
-    }
+    clearAnimationTimer();
     
     // Reset state
     setProgress(0);
@@ -134,7 +143,7 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
     setAnalysisResult(null);
     setIsShowingResults(false);
     setSavedResult(null);
-  };
+  }, [clearAnimationTimer]);
   
   return {
     analyze,
