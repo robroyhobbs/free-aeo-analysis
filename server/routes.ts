@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analyzeWebsite, getContent } from "./analysis";
 import { validUrlSchema } from "@shared/schema";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { spawn } from 'child_process';
 import { ZodError } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -86,6 +89,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching analyses:", error);
       return res.status(500).json({ 
         message: "Failed to fetch recent analyses" 
+      });
+    }
+  });
+  
+  // Admin endpoint to manually generate a blog post
+  app.post("/api/admin/generate-blog", async (_req: Request, res: Response) => {
+    try {
+      // Get the current file's directory
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      
+      // Path to the generator script
+      const generatorPath = join(__dirname, '../scripts/generate-blog-post.js');
+      
+      // Execute the script as a child process
+      const process = spawn('node', [generatorPath, '--now'], {
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+      
+      let output = '';
+      let errorOutput = '';
+      
+      process.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+      
+      process.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+      
+      // Handle process completion
+      process.on('close', (code) => {
+        if (code === 0) {
+          return res.json({
+            success: true,
+            message: 'Blog post generated successfully',
+            output: output
+          });
+        } else {
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to generate blog post',
+            error: errorOutput
+          });
+        }
+      });
+    } catch (error: any) {
+      const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
+      console.error("Error generating blog post:", errorMessage);
+      return res.status(500).json({ 
+        success: false,
+        message: "Failed to generate blog post",
+        error: errorMessage
       });
     }
   });

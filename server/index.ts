@@ -1,6 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { spawn } from 'child_process';
 
 const app = express();
 app.use(express.json());
@@ -66,5 +69,29 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Start the blog post scheduler in the background
+    try {
+      // Get the current file's directory
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      
+      // Path to the scheduler script
+      const schedulerPath = join(__dirname, '../scripts/schedule-blog-post.js');
+      
+      // Start the scheduler as a detached process
+      const schedulerProcess = spawn('node', [schedulerPath], {
+        detached: true,
+        stdio: 'ignore'
+      });
+      
+      // Unref to allow the parent process to exit independently
+      schedulerProcess.unref();
+      
+      log('Blog post scheduler started successfully');
+    } catch (error: any) {
+      const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
+      log(`Failed to start blog post scheduler: ${errorMessage}`);
+    }
   });
 })();
