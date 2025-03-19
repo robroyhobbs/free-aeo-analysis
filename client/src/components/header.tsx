@@ -27,6 +27,7 @@ export function Header() {
             <Link href="/#features" className="text-slate-800 hover:text-primary font-medium">Features</Link>
             <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium">Analyzer</Link>
             <Link href="/blog" className="text-slate-800 hover:text-primary font-medium">Blog</Link>
+            <Link href="/faq" className="text-slate-800 hover:text-primary font-medium">FAQ</Link>
             <Link href="/#analysis-tool">
               <Button className="gradient-bg hover:from-primary/90 hover:to-indigo-500/90">
                 Get Started
@@ -49,6 +50,7 @@ export function Header() {
               <Link href="/#features" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Features</Link>
               <Link href="/#analysis-tool" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Analyzer</Link>
               <Link href="/blog" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
+              <Link href="/faq" className="text-slate-800 hover:text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
               <Link href="/#analysis-tool" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="gradient-bg w-full">Get Started</Button>
               </Link>

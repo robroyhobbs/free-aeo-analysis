@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles */
+@layer components {
+  .gradient-bg {
+    @apply bg-gradient-to-r from-primary to-indigo-600 text-white;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

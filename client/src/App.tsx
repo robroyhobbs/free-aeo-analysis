@@ -3,6 +3,7 @@ import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import BlogPage from "@/pages/blog";
 import BlogDetailPage from "@/pages/blog-detail";
+import FAQPage from "@/pages/faq";
 
 function Router() {
   return (
@@ -10,6 +11,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/blog" component={BlogPage} />
       <Route path="/blog/:slug" component={BlogDetailPage} />
+      <Route path="/faq" component={FAQPage} />
       <Route component={NotFound} />
     </Switch>
   );
