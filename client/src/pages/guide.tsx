@@ -12,6 +12,8 @@ import {
 import { Link } from 'wouter';
 import { ChevronDown, CheckCircle2, BookOpen, ArrowRight, ExternalLink } from 'lucide-react';
 import { guideContent } from '@/lib/guide-data';
+import { SEO } from '@/components/seo';
+import { getGuidePageSchema } from '@/lib/schema';
 
 export default function GuidePage() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -45,6 +47,14 @@ export default function GuidePage() {
 
   return (
     <>
+      <SEO 
+        title="The Ultimate Guide to Answer Engine Optimization (AEO)"
+        description="Learn how to optimize your content for AI assistants and answer engines with our comprehensive step-by-step guide to Answer Engine Optimization (AEO)."
+        keywords="AEO guide, Answer Engine Optimization strategies, AI optimization, structured data, question-based content, semantic keywords, content clarity"
+        canonical="/guide"
+        ogType="article"
+        structuredData={getGuidePageSchema()}
+      />
       <Header />
       
       <main className="bg-slate-50 pb-20">

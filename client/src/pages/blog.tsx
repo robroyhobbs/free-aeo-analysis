@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { SEO } from '@/components/seo';
+import { getBlogIndexSchema } from '@/lib/schema';
 
 export default function BlogPage() {
   // Get the featured blog post (the first one)
@@ -18,6 +20,13 @@ export default function BlogPage() {
   
   return (
     <>
+      <SEO 
+        title="AEO Blog - Answer Engine Optimization Insights & Strategies"
+        description="Explore our collection of articles on Answer Engine Optimization (AEO) best practices, strategies, and expert insights to improve your website's AI visibility."
+        keywords="AEO blog, Answer Engine Optimization articles, AI content optimization, AEO tips, content strategy for AI"
+        canonical="/blog"
+        structuredData={getBlogIndexSchema(blogPosts)}
+      />
       <Header />
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="text-center mb-12">

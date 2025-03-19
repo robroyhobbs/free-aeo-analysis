@@ -10,6 +10,8 @@ import { Card } from '@/components/ui/card';
 import ReactMarkdown from 'react-markdown';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { SEO } from '@/components/seo';
+import { getBlogPostSchema } from '@/lib/schema';
 
 export default function BlogDetailPage() {
   const [, params] = useRoute('/blog/:slug');

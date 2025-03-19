@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Info, Settings, CreditCard, Lightbulb } from 'lucide-react';
 import { faqItems, FAQItem } from '@/lib/faq-data';
+import { SEO } from '@/components/seo';
+import { getFaqPageSchema } from '@/lib/schema';
 
 export default function FAQPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,6 +34,13 @@ export default function FAQPage() {
   
   return (
     <>
+      <SEO 
+        title="Frequently Asked Questions | AEO Analysis"
+        description="Common questions and answers about Answer Engine Optimization (AEO) and how to optimize your content for AI search engines and assistants."
+        keywords="AEO FAQ, Answer Engine Optimization questions, AI search optimization, AEO guide, common AEO questions"
+        canonical="/faq"
+        structuredData={getFaqPageSchema(faqItems)}
+      />
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
