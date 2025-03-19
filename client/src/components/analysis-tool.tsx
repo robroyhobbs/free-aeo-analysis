@@ -19,11 +19,53 @@ import {
 
 // Animation constants
 const ANIMATION_DURATION = 8000; // 8 seconds
+
+// Animation step configurations with sub-steps for detailed progress tracking
 const ANIMATION_STEPS = [
-  { step: AnalysisStep.Crawling, endPercent: 25 },
-  { step: AnalysisStep.Analyzing, endPercent: 55 },
-  { step: AnalysisStep.Calculating, endPercent: 80 },
-  { step: AnalysisStep.Generating, endPercent: 100 }
+  { 
+    step: AnalysisStep.Crawling, 
+    endPercent: 25,
+    subSteps: [
+      { label: "Initializing crawler", percentOfStep: 10 },
+      { label: "Fetching HTML content", percentOfStep: 30 },
+      { label: "Extracting metadata", percentOfStep: 20 },
+      { label: "Parsing structured data", percentOfStep: 20 },
+      { label: "Analyzing page structure", percentOfStep: 20 }
+    ]
+  },
+  { 
+    step: AnalysisStep.Analyzing, 
+    endPercent: 55,
+    subSteps: [
+      { label: "Processing text content", percentOfStep: 15 },
+      { label: "Analyzing question format", percentOfStep: 25 },
+      { label: "Evaluating content clarity", percentOfStep: 20 },
+      { label: "Measuring content depth", percentOfStep: 20 },
+      { label: "Checking information accuracy", percentOfStep: 20 }
+    ]
+  },
+  { 
+    step: AnalysisStep.Calculating, 
+    endPercent: 80,
+    subSteps: [
+      { label: "Computing base score", percentOfStep: 20 },
+      { label: "Applying semantic weight", percentOfStep: 20 },
+      { label: "Evaluating formatting impact", percentOfStep: 20 },
+      { label: "Analyzing linked references", percentOfStep: 20 },
+      { label: "Finalizing category scores", percentOfStep: 20 }
+    ]
+  },
+  { 
+    step: AnalysisStep.Generating, 
+    endPercent: 100,
+    subSteps: [
+      { label: "Identifying strengths", percentOfStep: 20 },
+      { label: "Finding improvement areas", percentOfStep: 20 },
+      { label: "Generating recommendations", percentOfStep: 20 },
+      { label: "Creating summary report", percentOfStep: 20 },
+      { label: "Finalizing analysis results", percentOfStep: 20 }
+    ]
+  }
 ];
 
 export function AnalysisTool() {
@@ -36,6 +78,8 @@ export function AnalysisTool() {
   const [viewState, setViewState] = useState<"input" | "analyzing" | "results">("input");
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState<AnalysisStep>(AnalysisStep.Idle);
+  const [currentSubStep, setCurrentSubStep] = useState<number>(0);
+  const [currentSubStepText, setCurrentSubStepText] = useState<string>("");
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   
   // Animation refs
@@ -107,6 +151,8 @@ export function AnalysisTool() {
       setViewState("input");
       setProgress(0);
       setCurrentStep(AnalysisStep.Idle);
+      setCurrentSubStep(0);
+      setCurrentSubStepText("");
       
       // Determine the error message to display
       let errorTitle = "Analysis Failed";
@@ -130,11 +176,45 @@ export function AnalysisTool() {
     }
   });
 
+  // Calculate the current detailed sub-step based on overall progress
+  const calculateSubStep = (currentStepIndex: number, progressPercent: number) => {
+    // Get the current step configuration
+    const stepConfig = ANIMATION_STEPS[currentStepIndex];
+    
+    // Calculate the previous steps' total percentage (0 if first step)
+    const prevStepsPercent = currentStepIndex > 0 ? ANIMATION_STEPS[currentStepIndex - 1].endPercent : 0;
+    
+    // Calculate how far we are into the current step (0-100%)
+    const stepTotalPercent = stepConfig.endPercent - prevStepsPercent;
+    const progressInCurrentStep = progressPercent - prevStepsPercent;
+    const percentCompletionInStep = (progressInCurrentStep / stepTotalPercent) * 100;
+    
+    // Calculate which sub-step we're in
+    let accumulatedPercent = 0;
+    for (let i = 0; i < stepConfig.subSteps.length; i++) {
+      accumulatedPercent += stepConfig.subSteps[i].percentOfStep;
+      if (percentCompletionInStep <= accumulatedPercent) {
+        return {
+          index: i,
+          text: stepConfig.subSteps[i].label
+        };
+      }
+    }
+    
+    // Default to the last sub-step if none matched
+    return {
+      index: stepConfig.subSteps.length - 1,
+      text: stepConfig.subSteps[stepConfig.subSteps.length - 1].label
+    };
+  };
+
   // Start the animation sequence
   const startAnimation = () => {
     // Reset animation state
     setProgress(0);
     setCurrentStep(AnalysisStep.Crawling);
+    setCurrentSubStep(0);
+    setCurrentSubStepText(ANIMATION_STEPS[0].subSteps[0].label);
     setViewState("analyzing");
     pendingResultRef.current = null;
     
@@ -154,10 +234,21 @@ export function AnalysisTool() {
       // Update progress
       setProgress(newProgress);
       
-      // Update current step based on progress
+      // Update current step and sub-step based on progress
       for (let i = 0; i < ANIMATION_STEPS.length; i++) {
         if (newProgress <= ANIMATION_STEPS[i].endPercent) {
-          setCurrentStep(ANIMATION_STEPS[i].step);
+          const currentStepIndex = i;
+          const newStep = ANIMATION_STEPS[i].step;
+          
+          // Only update the UI if the step has changed
+          if (newStep !== currentStep) {
+            setCurrentStep(newStep);
+          }
+          
+          // Calculate and update the sub-step
+          const { index, text } = calculateSubStep(currentStepIndex, newProgress);
+          setCurrentSubStep(index);
+          setCurrentSubStepText(text);
           break;
         }
       }
@@ -243,6 +334,8 @@ export function AnalysisTool() {
     // Reset state
     setProgress(0);
     setCurrentStep(AnalysisStep.Idle);
+    setCurrentSubStep(0);
+    setCurrentSubStepText("");
     setViewState("input");
     setAnalysisResult(null);
     pendingResultRef.current = null;
@@ -356,14 +449,29 @@ export function AnalysisTool() {
                   {currentStep === AnalysisStep.Calculating && "Calculating AEO score..."}
                   {currentStep === AnalysisStep.Generating && "Generating optimization insights..."}
                 </div>
-                <p className="text-slate-600">
-                  {currentStep === AnalysisStep.Crawling && "Extracting text, metadata, and structural elements..."}
-                  {currentStep === AnalysisStep.Analyzing && "AI is analyzing content relevance and structure..."}
-                  {currentStep === AnalysisStep.Calculating && "Determining question-based content score..."}
-                  {currentStep === AnalysisStep.Generating && "Creating actionable recommendations..."}
-                </p>
-                <div className="mt-2 text-primary text-sm animate-pulse">
+                
+                {/* Detailed sub-step progress */}
+                <div className="relative">
+                  <div className="flex justify-center items-center">
+                    <div className="h-1.5 w-20 bg-slate-200 rounded-full my-2 overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-300 ease-out rounded-full"
+                        style={{ width: `${(currentSubStep + 1) * 20}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <p className="text-slate-600 mt-1 min-h-[1.5rem] transition-all duration-300">
+                    {currentSubStepText}
+                  </p>
+                </div>
+                
+                <div className="mt-3 text-primary text-sm animate-pulse">
                   Expected completion in {Math.max(8 - Math.floor(progress / 12.5), 1)} seconds
+                </div>
+                
+                {/* Precise progress percentage */}
+                <div className="mt-2 text-xs text-slate-500">
+                  {progress}% complete
                 </div>
               </div>
             </div>
