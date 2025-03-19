@@ -30,9 +30,28 @@ export function LoginForm() {
       
       if (success) {
         setLoginStatus('success');
+        
+        // Show success message
+        toast({
+          title: 'Login successful',
+          description: 'Redirecting to admin dashboard...',
+          variant: 'default'
+        });
+        
         // Double-check auth status after a short delay to ensure the session is established
         setTimeout(() => {
-          refreshAuthStatus();
+          // Force refresh auth status
+          const checkAuth = async () => {
+            const status = await refreshAuthStatus();
+            console.log('Login form - Auth status after refresh:', status);
+            
+            if (status.authenticated) {
+              // Force redirect to refresh the admin page
+              window.location.href = '/admin';
+            }
+          };
+          
+          checkAuth();
         }, 500);
       } else {
         setLoginStatus('error');

@@ -55,7 +55,10 @@ export function useAuth() {
   // Refresh auth status - can be called explicitly
   const refreshAuthStatus = useCallback(async () => {
     setAuthState(prev => ({ ...prev, isLoading: true }));
-    return fetchAuthStatus();
+    console.log('Explicitly refreshing auth status...');
+    const result = await fetchAuthStatus();
+    console.log('Auth status refreshed:', result);
+    return result;
   }, [fetchAuthStatus]);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
