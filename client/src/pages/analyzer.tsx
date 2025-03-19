@@ -1,5 +1,7 @@
 import { AnalysisTool } from "@/components/analysis-tool";
 import { SEO } from "@/components/seo";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 
 export default function AnalyzerPage() {
   return (
@@ -9,6 +11,7 @@ export default function AnalyzerPage() {
         description="Analyze your website for Answer Engine Optimization. Get instant insights and actionable recommendations to improve your content for AI search."
         keywords="AEO analyzer, website analysis, AI optimization, content scoring, free analysis tool"
       />
+      <Header />
       
       <div className="py-16 bg-gradient-to-b from-slate-50 to-white">
         <div className="content-container">
@@ -36,6 +39,7 @@ export default function AnalyzerPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }
