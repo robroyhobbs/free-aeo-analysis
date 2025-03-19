@@ -96,7 +96,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get competitor content if provided
       let competitorContent = null;
       if (competitorUrl) {
-        competitorContent = await getContent(competitorUrl);
+        try {
+          competitorContent = await getContent(competitorUrl);
+        } catch (error) {
+          console.warn(`Could not fetch competitor URL (${competitorUrl}):`, error);
+          // Continue with analysis but without competitor content
+        }
       }
       
       // Analyze the content
