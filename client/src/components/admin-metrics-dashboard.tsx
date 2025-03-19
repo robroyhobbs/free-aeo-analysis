@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Calendar, Globe, BarChart } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { apiRequest } from '@/lib/queryClient';
+import { getQueryFn } from '@/lib/queryClient';
 
 // Interface for the metrics data
 interface UsageMetrics {
@@ -16,10 +16,7 @@ export function AdminMetricsDashboard() {
   // Fetch metrics data
   const { data: metrics, isLoading, error } = useQuery<UsageMetrics>({
     queryKey: ['/api/admin/metrics'],
-    queryFn: async () => {
-      const response = await apiRequest('/api/admin/metrics');
-      return response as UsageMetrics;
-    }
+    queryFn: getQueryFn<UsageMetrics>({ on401: 'throw' })
   });
 
   // If loading, show skeletons
@@ -123,10 +120,10 @@ export function AdminMetricsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {metrics.topDomains.map((item, i) => (
+              {metrics.topDomains.map((item: { domain: string; count: number }, i: number) => (
                 <div key={i} className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Domain className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span className="font-medium">{item.domain}</span>
                   </div>
                   <div className="flex items-center gap-2">

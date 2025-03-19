@@ -58,6 +58,10 @@ export default function AdminPage() {
                   </Button>
                 </div>
                 
+                <AdminMetricsDashboard />
+                
+                <Separator className="my-6" />
+                
                 <BlogAdminPanel />
               </div>
             ) : (
