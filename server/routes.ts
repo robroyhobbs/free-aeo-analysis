@@ -182,17 +182,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({
             success: true,
             message: 'Blog post added successfully',
-            output: result.output || 'Blog post added with static content'
+            output: result.output || 'Blog post added and file structure fixed'
           });
         } else {
           return res.status(500).json({
             success: false,
-            message: result.message || 'Failed to add static blog post',
+            message: result.message || 'Failed to fix blog data and add post',
             error: result.error || 'Unknown error'
           });
         }
       } catch (importError) {
-        console.error('[Admin] Error importing or executing static blog post script:', importError);
+        console.error('[Admin] Error importing or executing blog fix script:', importError);
         
         // Fallback to executing as a process if import fails
         const process = spawn('node', [fixScriptPath], {
@@ -205,20 +205,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         process.stdout.on('data', (data) => {
           const chunk = data.toString();
           output += chunk;
-          console.log(`[Blog Generator] ${chunk.trim()}`);
+          console.log(`[Blog Fixer] ${chunk.trim()}`);
         });
         
         process.stderr.on('data', (data) => {
           const chunk = data.toString();
           errorOutput += chunk;
-          console.error(`[Blog Generator Error] ${chunk.trim()}`);
+          console.error(`[Blog Fixer Error] ${chunk.trim()}`);
         });
         
         // Set a timeout for the process
         const timeout = setTimeout(() => {
           if (!process.killed) {
             process.kill();
-            console.error('[Admin] Blog generation process timed out after 30 seconds');
+            console.error('[Admin] Blog fix process timed out after 30 seconds');
           }
         }, 30000);
         
@@ -235,7 +235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             return res.status(500).json({
               success: false,
-              message: 'Failed to add static blog post (via process)',
+              message: 'Failed to fix blog data and add post (via process)',
               error: errorOutput || 'Process exit code: ' + code
             });
           }
