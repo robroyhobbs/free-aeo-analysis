@@ -35,7 +35,7 @@ export const blogPosts: BlogPost[] = [
     readTime: 9,
     category: "Strategy",
     tags: ["AEO","SEO","Hybrid Strategy","Future Trends"],
-    coverImage: "https://images.unsplash.com/photo-1659536540464-1501cb808c59?q=80&w=2070&auto=format&fit=crop",
+    coverImage: "/images/blog/aeo-cover.svg",
     featured: false
   },
   {
