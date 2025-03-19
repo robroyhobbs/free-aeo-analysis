@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AnalysisResult, AnalysisStep } from "@/types";
@@ -7,94 +7,97 @@ interface UseWebsiteAnalysisOptions {
   onError?: (error: Error) => void;
 }
 
+// Animation constants
+const ANIMATION_DURATION_MS = 8000; // 8 seconds animation
+const ANIMATION_STEPS = [
+  { step: AnalysisStep.Crawling, endPercent: 25 },
+  { step: AnalysisStep.Analyzing, endPercent: 55 },
+  { step: AnalysisStep.Calculating, endPercent: 80 },
+  { step: AnalysisStep.Generating, endPercent: 100 }
+];
+
 export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState<AnalysisStep>(AnalysisStep.Idle);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   
-  // We'll use a ref to store API response data while animation is still running
-  const pendingResultRef = useRef<AnalysisResult | null>(null);
+  // References to track animation and analysis state
+  const animationRef = useRef<{
+    startTime: number;
+    timer: NodeJS.Timeout | null;
+    isComplete: boolean;
+    resultData: AnalysisResult | null;
+  }>({
+    startTime: 0,
+    timer: null,
+    isComplete: false,
+    resultData: null
+  });
+
+  // Create a state to trigger effect when animation or result state changes
+  const [triggerCheck, setTriggerCheck] = useState(0);
   
-  // Create a simulated progress timer with variable progression rates
-  const simulateProgress = useCallback(() => {
+  // Function to check and update state when both animation is complete and results are ready
+  const checkCompletionState = () => {
+    if (animationRef.current.isComplete && animationRef.current.resultData) {
+      setAnalysisResult(animationRef.current.resultData);
+      setCurrentStep(AnalysisStep.Complete);
+      
+      // Reset the animation state
+      animationRef.current.resultData = null;
+      animationRef.current.isComplete = false;
+    }
+  };
+  
+  // This effect handles the completion of both the animation and analysis
+  useEffect(() => {
+    checkCompletionState();
+  }, [triggerCheck]);
+
+  // Start the animation sequence - guaranteed to run for exactly 8 seconds
+  const startAnimation = () => {
+    // Clear any existing animation
+    if (animationRef.current.timer) {
+      clearInterval(animationRef.current.timer);
+    }
+    
+    // Reset progress and animation state
     setProgress(0);
     setCurrentStep(AnalysisStep.Crawling);
+    animationRef.current.isComplete = false;
+    animationRef.current.startTime = Date.now();
     
-    const totalDuration = 12000; // 12 seconds (extended from 5s)
-    const updateInterval = 60; // Update every 60ms
+    // Frame rate for smooth animation (approximately 60fps)
+    const frameInterval = 16; // ~60fps
     
-    // Step transition points (in percentage)
-    const stepTransitions = {
-      crawling: { start: 0, end: 20 },
-      analyzing: { start: 20, end: 50 }, // AI analysis takes longer
-      calculating: { start: 50, end: 75 },
-      generating: { start: 75, end: 100 }
-    };
-    
-    // Different progression rates for each step (to simulate realistic processing)
-    const getProgressionRate = (progress: number) => {
-      if (progress < stepTransitions.crawling.end) {
-        return 0.9; // Crawling at moderate speed to be more visible
-      } else if (progress < stepTransitions.analyzing.end) {
-        return 0.5; // AI analysis is much slower (most intensive task)
-      } else if (progress < stepTransitions.calculating.end) {
-        return 0.7; // Calculation is medium speed
-      } else {
-        return 0.8; // Generation is slightly faster than calculation
-      }
-    };
-    
-    let currentProgress = 0;
-    let lastUpdateTime = Date.now();
-    
-    const timer = setInterval(() => {
-      const now = Date.now();
-      const delta = now - lastUpdateTime;
-      lastUpdateTime = now;
+    // Start the animation timer
+    animationRef.current.timer = setInterval(() => {
+      const elapsedTime = Date.now() - animationRef.current.startTime;
       
-      // Calculate progress based on time delta and current progression rate
-      const progressionRate = getProgressionRate(currentProgress);
-      const increment = (delta / totalDuration) * 100 * progressionRate;
+      // Calculate progress as a percentage of the total animation time
+      const progressPercent = Math.min(100, Math.floor((elapsedTime / ANIMATION_DURATION_MS) * 100));
+      setProgress(progressPercent);
       
-      // Add small random variation for natural effect
-      const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-      currentProgress += increment * randomFactor;
-      
-      // Ensure progress doesn't exceed 100%
-      const newProgress = Math.min(Math.round(currentProgress), 99); // Cap at 99 for API to complete
-      setProgress(newProgress);
-      
-      // Update current step based on progress thresholds
-      if (currentProgress >= stepTransitions.analyzing.start && 
-          currentProgress < stepTransitions.analyzing.end) {
-        setCurrentStep(AnalysisStep.Analyzing);
-      } else if (currentProgress >= stepTransitions.calculating.start && 
-                 currentProgress < stepTransitions.calculating.end) {
-        setCurrentStep(AnalysisStep.Calculating);
-      } else if (currentProgress >= stepTransitions.generating.start) {
-        setCurrentStep(AnalysisStep.Generating);
+      // Determine the current step based on progress
+      for (let i = 0; i < ANIMATION_STEPS.length; i++) {
+        if (progressPercent <= ANIMATION_STEPS[i].endPercent) {
+          setCurrentStep(ANIMATION_STEPS[i].step);
+          break;
+        }
       }
       
-      // Complete the process when progress reaches 99%
-      if (currentProgress >= 99) {
-        clearInterval(timer);
-        
-        // Force progress to complete at 100%
-        setTimeout(() => {
-          setProgress(100);
-          setCurrentStep(AnalysisStep.Complete);
-          
-          // Check if we have analysis data stored in our ref
-          if (pendingResultRef.current) {
-            setAnalysisResult(pendingResultRef.current);
-            pendingResultRef.current = null;
-          }
-        }, 1000); // Delay completion by 1 second for dramatic effect
+      // If we've reached 100%, complete the animation
+      if (progressPercent >= 100) {
+        if (animationRef.current.timer) {
+          clearInterval(animationRef.current.timer);
+          animationRef.current.timer = null;
+        }
+        animationRef.current.isComplete = true;
+        setTriggerCheck(prev => prev + 1);
+        // The completion check happens in the effect via triggerCheck
       }
-    }, updateInterval);
-    
-    return timer;
-  }, [pendingResultRef]);
+    }, frameInterval);
+  };
   
   const analysisMutation = useMutation({
     mutationFn: async (url: string) => {
@@ -102,46 +105,32 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
       return response.json();
     },
     onMutate: () => {
-      // Reset any pending result data
-      pendingResultRef.current = null;
-      
-      const timer = simulateProgress();
-      const startTime = Date.now();
-      return { timer, startTime };
+      // Reset state and start the animation
+      animationRef.current.resultData = null;
+      startAnimation();
     },
-    onSuccess: (data: AnalysisResult, _, context: any) => {
-      // Store the data in our ref so it can be accessed when animation completes
-      pendingResultRef.current = data;
-      
-      // Calculate how much time has elapsed
-      const elapsedTime = Date.now() - context.startTime;
-      const minimumAnimationTime = 12000; // 12 seconds
-      
-      // If we've completed early, don't cut the animation short
-      if (elapsedTime < minimumAnimationTime) {
-        // Let the animation continue - we'll show results when it completes
-        return;
+    onSuccess: (data: AnalysisResult) => {
+      // Store the result in our ref
+      animationRef.current.resultData = data;
+      setTriggerCheck(prev => prev + 1);
+      // The completion check will happen in the effect
+    },
+    onError: (error: Error) => {
+      // Stop the animation
+      if (animationRef.current.timer) {
+        clearInterval(animationRef.current.timer);
+        animationRef.current.timer = null;
       }
       
-      // If we're already past the minimum time, show results immediately
-      setAnalysisResult(data);
-      pendingResultRef.current = null; // Clear the reference
-    },
-    onError: (error: Error, _, context: any) => {
-      if (context?.timer) {
-        clearInterval(context.timer);
-      }
+      // Reset state
       setProgress(0);
       setCurrentStep(AnalysisStep.Idle);
       
+      // Call error handler if provided
       if (options?.onError) {
         options.onError(error);
       }
-    },
-    onSettled: (_, __, ___, context: any) => {
-      // Don't clear the interval here anymore, let it run its full course
-      // The animation itself will clear the interval when it reaches 99%
-    },
+    }
   });
   
   const analyze = (url: string) => {
@@ -150,10 +139,28 @@ export function useWebsiteAnalysis(options?: UseWebsiteAnalysisOptions) {
   };
   
   const reset = () => {
+    // Clear any running animation
+    if (animationRef.current.timer) {
+      clearInterval(animationRef.current.timer);
+      animationRef.current.timer = null;
+    }
+    
+    // Reset state
     setProgress(0);
     setCurrentStep(AnalysisStep.Idle);
     setAnalysisResult(null);
+    animationRef.current.resultData = null;
+    animationRef.current.isComplete = false;
   };
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current.timer) {
+        clearInterval(animationRef.current.timer);
+      }
+    };
+  }, []);
   
   return {
     analyze,

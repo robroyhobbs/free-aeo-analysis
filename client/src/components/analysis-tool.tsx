@@ -103,7 +103,7 @@ export function AnalysisTool() {
               </div>
               
               <div className="mt-4 text-center text-sm text-slate-500">
-                <p>Powered by Llama 3.3 - Analysis takes approximately 5 seconds</p>
+                <p>Powered by Llama 3.3 - Analysis takes just a few seconds</p>
               </div>
             </div>
           </CardContent>
@@ -182,7 +182,7 @@ export function AnalysisTool() {
                   {currentStep === AnalysisStep.Generating && "Creating actionable recommendations..."}
                 </p>
                 <div className="mt-2 text-primary text-sm animate-pulse">
-                  Expected completion in {Math.max(12 - Math.floor(progress / 8.3), 1)} seconds
+                  Expected completion in {Math.max(8 - Math.floor(progress / 12.5), 1)} seconds
                 </div>
               </div>
             </div>
