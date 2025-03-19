@@ -9,9 +9,28 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
 import csurf from 'csurf';
+import helmet from 'helmet';
 import { storage } from "./storage";
 
 const app = express();
+
+// Apply Helmet's security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
+      connectSrc: ["'self'", "https://api.github.com"]
+    }
+  },
+  xssFilter: true,
+  noSniff: true,
+  referrerPolicy: { policy: 'same-origin' }
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -29,7 +48,7 @@ app.use(session({
   }),
   resave: false,
   saveUninitialized: false,
-  secret: 'aeo-analysis-secret-key'
+  secret: process.env.SESSION_SECRET || 'aeo-analysis-secret-key'
 }));
 
 // Configure passport
