@@ -189,9 +189,9 @@ export default function BlogDetailPage() {
                         </div>
                         <div>
                           <h4 className="text-sm font-medium hover:text-primary transition-colors">
-                            <Link href={`/blog/${related.slug}`}>
+                            <a href={`/blog/${related.slug}`} className="hover:text-primary">
                               {related.title}
-                            </Link>
+                            </a>
                           </h4>
                           <p className="text-xs text-slate-500 mt-1">{format(new Date(related.publishedAt), 'MMM d, yyyy')}</p>
                         </div>
