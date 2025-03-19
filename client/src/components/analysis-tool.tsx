@@ -497,7 +497,7 @@ export function AnalysisTool() {
                           <SelectValue placeholder="Select your industry" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No specific industry</SelectItem>
+                          <SelectItem value="none">No specific industry</SelectItem>
                           <SelectItem value="education">Education</SelectItem>
                           <SelectItem value="ecommerce">E-commerce</SelectItem>
                           <SelectItem value="finance">Finance</SelectItem>
@@ -524,7 +524,7 @@ export function AnalysisTool() {
                           <SelectValue placeholder="Select content focus" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">General content</SelectItem>
+                          <SelectItem value="general">General content</SelectItem>
                           <SelectItem value="question_focused">Question-focused</SelectItem>
                           <SelectItem value="educational">Educational</SelectItem>
                           <SelectItem value="product">Product/Service</SelectItem>
