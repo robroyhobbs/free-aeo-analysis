@@ -14,6 +14,26 @@ import rateLimit from 'express-rate-limit';
 import { storage } from "./storage";
 import { randomBytes } from 'crypto';
 
+// Function to start the blog post scheduler
+function startBlogPostScheduler() {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const schedulerPath = join(__dirname, '../scripts/schedule-blog-post.js');
+    
+    const schedulerProcess = spawn('node', [schedulerPath], {
+      detached: true,
+      stdio: 'inherit'
+    });
+    
+    schedulerProcess.unref();
+    log('Blog post scheduler started successfully');
+  } catch (error: any) {
+    const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
+    log(`Failed to start blog post scheduler: ${errorMessage}`);
+  }
+}
+
 const app = express();
 
 // Rate limiting configuration
@@ -199,23 +219,8 @@ app.use((req, res, next) => {
     .on('listening', () => {
       log(`Server running on port ${port}`);
       
-      // Start the blog post scheduler in the background
-      try {
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = dirname(__filename);
-        const schedulerPath = join(__dirname, '../scripts/schedule-blog-post.js');
-        
-        const schedulerProcess = spawn('node', [schedulerPath], {
-          detached: true,
-          stdio: 'inherit' // Change to inherit for debugging
-        });
-        
-        schedulerProcess.unref();
-        log('Blog post scheduler started successfully');
-      } catch (error: any) {
-        const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
-        log(`Failed to start blog post scheduler: ${errorMessage}`);
-      }
+      // Start the blog post scheduler after server is running
+      startBlogPostScheduler();
     });
   }
 
