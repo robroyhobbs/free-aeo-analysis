@@ -10,11 +10,25 @@ import session from 'express-session';
 import MemoryStore from 'memorystore';
 import csurf from 'csurf';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { storage } from "./storage";
+import { randomBytes } from 'crypto';
 
 const app = express();
 
-// Apply Helmet's security headers
+// Rate limiting configuration
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Apply rate limiter to all routes
+app.use(limiter);
+
+// Enhanced security headers with Helmet
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -23,32 +37,47 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
-      connectSrc: ["'self'", "https://api.github.com"]
+      connectSrc: ["'self'", "https://api.github.com"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: []
     }
   },
   xssFilter: true,
   noSniff: true,
-  referrerPolicy: { policy: 'same-origin' }
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Parse JSON with size limits
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
-// Configure session
+// Generate a strong session secret
+const sessionSecret = process.env.SESSION_SECRET || randomBytes(32).toString('hex');
+
+// Enhanced session configuration
 const SessionStore = MemoryStore(session);
 app.use(session({
   cookie: { 
     maxAge: 86400000, // 24 hours
-    secure: false,    // Allow cookies over HTTP for development
-    sameSite: 'lax', // Helps with CSRF protection while allowing normal usage
-    httpOnly: true    // Prevents JavaScript from reading the cookie
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    httpOnly: true
   },
   store: new SessionStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
+    checkPeriod: 86400000, // prune expired entries every 24h
+    ttl: 86400000 // TTL of 24 hours
   }),
   resave: false,
   saveUninitialized: false,
-  secret: process.env.SESSION_SECRET || 'aeo-analysis-secret-key'
+  secret: sessionSecret,
+  name: 'sessionId', // Change default cookie name
+  rolling: true // Refresh session with each request
 }));
 
 // Configure passport
@@ -142,39 +171,53 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-    
-    // Start the blog post scheduler in the background
-    try {
-      // Get the current file's directory
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = dirname(__filename);
+  // Modify the server listening configuration to handle port issues
+  const ports = [5000, 3000, 8080]; // Fallback ports
+  let currentPortIndex = 0;
+
+  function tryListen() {
+    const port = ports[currentPortIndex];
+    server.listen({
+      port,
+      host: "127.0.0.1", // Use localhost instead of 0.0.0.0
+    })
+    .on('error', (error: any) => {
+      if (error.code === 'EADDRINUSE' || error.code === 'ENOTSUP') {
+        currentPortIndex++;
+        if (currentPortIndex < ports.length) {
+          log(`Port ${port} not available, trying ${ports[currentPortIndex]}...`);
+          tryListen();
+        } else {
+          log('All ports are unavailable. Please configure a different port.');
+          process.exit(1);
+        }
+      } else {
+        log(`Server error: ${error.message}`);
+        throw error;
+      }
+    })
+    .on('listening', () => {
+      log(`Server running on port ${port}`);
       
-      // Path to the scheduler script
-      const schedulerPath = join(__dirname, '../scripts/schedule-blog-post.js');
-      
-      // Start the scheduler as a detached process
-      const schedulerProcess = spawn('node', [schedulerPath], {
-        detached: true,
-        stdio: 'ignore'
-      });
-      
-      // Unref to allow the parent process to exit independently
-      schedulerProcess.unref();
-      
-      log('Blog post scheduler started successfully');
-    } catch (error: any) {
-      const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
-      log(`Failed to start blog post scheduler: ${errorMessage}`);
-    }
-  });
+      // Start the blog post scheduler in the background
+      try {
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+        const schedulerPath = join(__dirname, '../scripts/schedule-blog-post.js');
+        
+        const schedulerProcess = spawn('node', [schedulerPath], {
+          detached: true,
+          stdio: 'inherit' // Change to inherit for debugging
+        });
+        
+        schedulerProcess.unref();
+        log('Blog post scheduler started successfully');
+      } catch (error: any) {
+        const errorMessage = error && typeof error.message === 'string' ? error.message : 'Unknown error';
+        log(`Failed to start blog post scheduler: ${errorMessage}`);
+      }
+    });
+  }
+
+  tryListen();
 })();

@@ -2,6 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
+import sanitizeHtml from 'sanitize-html';
+import { validate as validateUUID } from 'uuid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -299,6 +301,61 @@ function getNextAvailableId(blogPosts) {
   return String(maxId + 1);
 }
 
+// Validation functions
+function validateBlogPost(post) {
+  if (!post) throw new Error('Blog post is required');
+  
+  // Validate required fields
+  const requiredFields = ['title', 'slug', 'excerpt', 'content', 'author'];
+  for (const field of requiredFields) {
+    if (!post[field]) throw new Error(`Missing required field: ${field}`);
+  }
+  
+  // Validate and sanitize content
+  const sanitizedContent = sanitizeHtml(post.content, {
+    allowedTags: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'a', 'strong', 'em', 'code', 'pre', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+    allowedAttributes: {
+      'a': ['href', 'title'],
+      'code': ['class'],
+      'pre': ['class']
+    }
+  });
+  
+  // Validate lengths
+  if (post.title.length > 100) throw new Error('Title too long (max 100 chars)');
+  if (post.excerpt.length > 300) throw new Error('Excerpt too long (max 300 chars)');
+  if (post.content.length > 50000) throw new Error('Content too long (max 50000 chars)');
+  
+  // Validate author
+  if (!post.author.name || !post.author.title) {
+    throw new Error('Author must have name and title');
+  }
+  
+  // Validate dates
+  if (!Date.parse(post.publishedAt)) {
+    throw new Error('Invalid publishedAt date');
+  }
+  
+  // Validate tags
+  if (!Array.isArray(post.tags) || post.tags.length === 0) {
+    throw new Error('Tags must be a non-empty array');
+  }
+  
+  // Sanitize and validate URLs
+  if (post.coverImage) {
+    const urlPattern = /^(https?:\/\/|\/)[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+$/;
+    if (!urlPattern.test(post.coverImage)) {
+      throw new Error('Invalid cover image URL');
+    }
+  }
+  
+  return {
+    ...post,
+    content: sanitizedContent,
+    id: validateUUID(post.id) ? post.id : crypto.randomUUID()
+  };
+}
+
 /**
  * Adds a new blog post to the blog data file
  */
@@ -380,46 +437,14 @@ async function addNewBlogPost() {
       featured: false
     };
     
-    // Create a new blog posts array string
+    // Validate the new post before adding
+    const validatedPost = validateBlogPost(newPost);
+    
+    // Create a new blog posts array string with the validated post
     const newBlogPostsString = `export const blogPosts: BlogPost[] = [
-  ${blogPosts.map(post => {
-    if (typeof post === 'string') return post;
-    return `{
-    id: "${post.id}",
-    title: "${post.title || 'Blog Post'}",
-    slug: "${post.slug || 'blog-post'}",
-    excerpt: "${post.excerpt || 'Excerpt'}",
-    content: "${(post.content || 'Content').replace(/"/g, '\\"').replace(/\n/g, '\\n')}",
-    author: {
-      name: "${post.author?.name || 'Author'}",
-      title: "${post.author?.title || 'Title'}",
-    },
-    publishedAt: "${post.publishedAt || formattedDate}",
-    readTime: ${post.readTime || 5},
-    category: "${post.category || 'Category'}",
-    tags: ${JSON.stringify(post.tags || ['Tag'])},
-    coverImage: "${post.coverImage || '/images/blog/aeo-cover.svg'}",
-    featured: ${post.featured || false}
-  }`
-  }).join(',\n  ')},
-  {
-    id: "${newPost.id}",
-    title: "${newPost.title}",
-    slug: "${newPost.slug}",
-    excerpt: "${newPost.excerpt}",
-    content: "${newPost.content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}",
-    author: {
-      name: "${newPost.author.name}",
-      title: "${newPost.author.title}",
-    },
-    publishedAt: "${newPost.publishedAt}",
-    readTime: ${newPost.readTime},
-    category: "${newPost.category}",
-    tags: ${JSON.stringify(newPost.tags)},
-    coverImage: "${newPost.coverImage}",
-    featured: ${newPost.featured}
-  }
-];`;
+      ${JSON.stringify(validatedPost, null, 2)},
+      ${blogPosts.map(post => JSON.stringify(post, null, 2)).join(',\n  ')}
+    ];`;
     
     // Replace the old blogPosts array with the new one
     const updatedContent = fileContent.replace(
@@ -439,7 +464,7 @@ async function addNewBlogPost() {
     console.error('Error adding new blog post:', error);
     return {
       success: false,
-      error: error.message || 'Unknown error adding new blog post'
+      error: `Validation error: ${error.message}`
     };
   }
 }
